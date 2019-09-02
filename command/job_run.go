@@ -12,7 +12,7 @@ import "../auth"
 
 var JobRun = cli.Command{
 	Name:  "run",
-	Usage: "Run a backup job and send the results to the API",
+	Usage: "Run a one-off backup and send the results to the API",
 	Action: func(c *cli.Context) error {
 		config := config.LoadCli(c)
 

@@ -24,6 +24,8 @@ func createApp() *cli.App {
 			Usage: "Interact with backup jobs",
 			Subcommands: []cli.Command{
 				command.JobRun,
+				command.JobStartUnmanaged,
+				command.JobFinishUnmanaged,
 			},
 		},
 	}
