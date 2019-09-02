@@ -10,7 +10,7 @@ import "encoding/json"
 import "../config"
 import "../auth"
 
-var JobRun = cli.Command{
+var BackupRun = cli.Command{
 	Name:  "run",
 	Usage: "Run a one-off backup and send the results to the API",
 	Action: func(c *cli.Context) error {

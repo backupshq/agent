@@ -2,7 +2,7 @@ package command
 
 import "github.com/urfave/cli"
 
-var JobStartUnmanaged = cli.Command{
+var BackupStartUnmanaged = cli.Command{
 	Name:  "start-unmanaged",
 	Usage: "Start an unmanaged backup",
 	Description: `

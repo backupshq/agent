@@ -20,12 +20,12 @@ func createApp() *cli.App {
 		command.Agent,
 		command.ExampleConfig,
 		{
-			Name:  "job",
-			Usage: "Interact with backup jobs",
+			Name:  "backup",
+			Usage: "Interact with backups",
 			Subcommands: []cli.Command{
-				command.JobRun,
-				command.JobStartUnmanaged,
-				command.JobFinishUnmanaged,
+				command.BackupRun,
+				command.BackupStartUnmanaged,
+				command.BackupFinishUnmanaged,
 			},
 		},
 	}
