@@ -88,6 +88,10 @@ func getAccessToken(config *config.Config) (tokenResponse, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		log.Fatal("Unable to retrieve access token: HTTP " + resp.Status)
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal("Error reading body. ", err)
