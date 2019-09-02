@@ -8,27 +8,17 @@ import "strings"
 import "io/ioutil"
 import "github.com/urfave/cli"
 import "time"
-
-var clientId string
-var clientSecret string
+import "../config"
 
 var Agent = cli.Command{
 	Name:  "agent",
 	Usage: "Run the BackupsHQ agent",
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Name:        "client_id",
-			Destination: &clientId,
-		},
-		cli.StringFlag{
-			Name:        "client_secret",
-			Destination: &clientSecret,
-		},
-	},
 	Action: func(c *cli.Context) error {
 		log.Println("Starting BackupsHQ agent")
 
-		tokenResponse, err := getAccessToken()
+		config := config.LoadCli(c)
+
+		tokenResponse, err := getAccessToken(config)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,15 +65,15 @@ type tokenResponse struct {
 	Scope       string `json:"scope"`
 }
 
-func getAccessToken() (tokenResponse, error) {
+func getAccessToken(config *config.Config) (tokenResponse, error) {
 	client := &http.Client{
 		Timeout: time.Second * 3,
 	}
 
 	form := url.Values{
 		"grant_type":    {"client_credentials"},
-		"client_id":     {clientId},
-		"client_secret": {clientSecret},
+		"client_id":     {config.Auth.ClientId},
+		"client_secret": {config.Auth.ClientSecret},
 	}
 
 	req, err := http.NewRequest("POST", "http://localhost:8000/auth/token", strings.NewReader(form.Encode()))
