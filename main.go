@@ -18,6 +18,7 @@ func createApp() *cli.App {
 	}
 	app.Commands = []cli.Command{
 		command.Agent,
+		command.ExampleConfig,
 	}
 
 	return app
