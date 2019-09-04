@@ -1,2 +1,4 @@
 /backupshq
 /config.toml
+/job-id.txt
+/backup-script.sh
