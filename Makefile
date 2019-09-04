@@ -7,5 +7,6 @@ packages:
 
 build: backupshq
 
+.PHONY: backupshq
 backupshq:
 	go build -o backupshq
