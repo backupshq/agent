@@ -5,7 +5,6 @@ import "github.com/urfave/cli"
 import "time"
 import "log"
 import "net/http"
-import "net/url"
 import "../config"
 import "../auth"
 import "../actions"
@@ -32,9 +31,14 @@ To run any other type of backup, see backupshq job run --help.
 		client := &http.Client{
 			Timeout: time.Second * 3,
 		}
-		context := url.Values{}
-		context.Set("unmanaged", "true")
-		job := actions.StartJob(client, tokenResponse, c.Args().Get(0), context)
+
+		backupID := c.Args().Get(0)
+		backup := actions.GetBackup(client, tokenResponse, backupID)
+		if (backup.Type != actions.BACKUP_TYPE_UNMANAGED) {
+			log.Fatal("Cannot start managed backup using start-unmanaged command")
+		}
+
+		job := actions.StartJob(client, tokenResponse, backupID)
 		fmt.Printf("Started a new job with id %q.\n", job.ID)
 		fmt.Printf("To inform the API when this job is finished run: backupshq finish-unmanaged %q\n", job.ID)
 

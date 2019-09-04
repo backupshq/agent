@@ -23,7 +23,7 @@ var BackupRun = cli.Command{
 		client := &http.Client{
 			Timeout: time.Second * 3,
 		}
-		job := actions.StartJob(client, tokenResponse, c.Args().Get(0), nil)
+		job := actions.StartJob(client, tokenResponse, c.Args().Get(0))
 		fmt.Printf("Started a new job with id %q.\n", job.ID)
 
 		fmt.Println("Running backup...")
