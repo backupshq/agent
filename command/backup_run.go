@@ -1,13 +1,17 @@
 package command
 
-import "fmt"
-import "github.com/urfave/cli"
-import "time"
-import "log"
-import "net/http"
-import "../config"
-import "../auth"
-import "../actions"
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"../actions"
+	"../auth"
+	"../config"
+	"../utils"
+	"github.com/urfave/cli"
+)
 
 var BackupRun = cli.Command{
 	Name:  "run",
@@ -23,11 +27,19 @@ var BackupRun = cli.Command{
 		client := &http.Client{
 			Timeout: time.Second * 3,
 		}
+
+		backup := actions.GetBackup(client, tokenResponse, c.Args().Get(0))
+		if backup.Type == actions.BACKUP_TYPE_UNMANAGED {
+			log.Fatal("Cannot start unmanaged backup using `run` command, try `start-unmanaged`")
+		}
+
 		job := actions.StartJob(client, tokenResponse, c.Args().Get(0))
 		fmt.Printf("Started a new job with id %q.\n", job.ID)
 
 		fmt.Println("Running backup...")
-		time.Sleep(3 * time.Second)
+		fmt.Printf("Command: %s\n\n", backup.Command)
+		out := utils.ExecuteCommand(backup.Command)
+		fmt.Println(out)
 
 		fmt.Println("Publishing results to API.")
 		actions.FinishJob(client, tokenResponse, job)

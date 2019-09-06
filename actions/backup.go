@@ -1,22 +1,25 @@
 package actions
 
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 
-import "encoding/json"
-import "fmt"
-import "io/ioutil"
-import "log"
-import "net/http"
-import "../auth"
+	"../auth"
+)
 
 const BACKUP_TYPE_UNMANAGED = 0
 const BACKUP_TYPE_UNSCHEDULED = 1
 const BACKUP_TYPE_SCHEDULED = 2
 
 type Backup struct {
-	ID string
-	Name string
+	ID          string
+	Name        string
 	Description string
-	Type int
+	Type        int
+	Command     string
 }
 
 func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, backupId string) Backup {
@@ -25,7 +28,7 @@ func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 		log.Fatal("Error reading request. ", err)
 	}
 	auth.AddAuthHeader(req, tokenResponse)
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
