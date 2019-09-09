@@ -1,13 +1,15 @@
 package actions
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 
-import "encoding/json"
-import "fmt"
-import "io/ioutil"
-import "log"
-import "net/http"
-import "../auth"
-
+	"../auth"
+)
 
 type Job struct {
 	ID string
@@ -19,7 +21,7 @@ func StartJob(client *http.Client, tokenResponse auth.AccessTokenResponse, backu
 		log.Fatal("Error reading request. ", err)
 	}
 	auth.AddAuthHeader(req, tokenResponse)
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
@@ -45,6 +47,24 @@ func FinishJob(client *http.Client, tokenResponse auth.AccessTokenResponse, job 
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
+	auth.AddAuthHeader(req, tokenResponse)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	return
+}
+
+func SendLogs(client *http.Client, tokenResponse auth.AccessTokenResponse, job Job, logStr string) {
+	logJSON := []byte(`{"log":"` + logStr + `"}`)
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/write-logs", job.ID), bytes.NewBuffer(logJSON))
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+
 	auth.AddAuthHeader(req, tokenResponse)
 
 	resp, err := client.Do(req)
