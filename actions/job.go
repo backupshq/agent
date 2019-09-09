@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"../auth"
+	"../utils"
 )
 
 type Job struct {
@@ -59,7 +60,7 @@ func FinishJob(client *http.Client, tokenResponse auth.AccessTokenResponse, job 
 }
 
 func SendLogs(client *http.Client, tokenResponse auth.AccessTokenResponse, job Job, logStr string) {
-	logJSON := []byte(`{"log":"` + logStr + `"}`)
+	logJSON := []byte(`{"log":"` + utils.Base64Encode(logStr) + `"}`)
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/write-logs", job.ID), bytes.NewBuffer(logJSON))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
