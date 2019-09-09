@@ -46,6 +46,7 @@ var BackupRun = cli.Command{
 
 		fmt.Println("Publishing results to API.")
 		actions.FinishJob(client, tokenResponse, job)
+		actions.SendLogs(client, tokenResponse, job, out)
 
 		return nil
 	},
