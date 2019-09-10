@@ -1,6 +1,9 @@
 package utils
 
-import "os/exec"
+import (
+	"errors"
+	"os/exec"
+)
 
 func ExecuteCommand(cmd string) (string, error) {
 	out, err := exec.Command("sh", "-c", cmd).Output()
