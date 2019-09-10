@@ -2,10 +2,10 @@ package utils
 
 import "os/exec"
 
-func ExecuteCommand(cmd string) string {
+func ExecuteCommand(cmd string) (string, error) {
 	out, err := exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
-		return "Error executing command"
+		return "", errors.New("Error executing command: " + err.Error())
 	}
-	return string(out)
+	return string(out), nil
 }

@@ -38,7 +38,10 @@ var BackupRun = cli.Command{
 
 		fmt.Println("Running backup...")
 		fmt.Printf("Command: %s\n\n", backup.Command)
-		out := utils.ExecuteCommand(backup.Command)
+		out, err := utils.ExecuteCommand(backup.Command)
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println(out)
 
 		fmt.Println("Publishing results to API.")
