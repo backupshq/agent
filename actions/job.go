@@ -1,15 +1,14 @@
 package actions
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"../auth"
-	"../utils"
 )
 
 type Job struct {
@@ -60,11 +59,11 @@ func FinishJob(client *http.Client, tokenResponse auth.AccessTokenResponse, job 
 }
 
 func SendLogs(client *http.Client, tokenResponse auth.AccessTokenResponse, job Job, logStr string) {
-	logJSON := []byte(`{"log":"` + utils.Base64Encode(logStr) + `"}`)
-	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/write-logs", job.ID), bytes.NewBuffer(logJSON))
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/logs", job.ID), strings.NewReader(logStr))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
+	req.Header.Set("Content-Type", "text/plain")
 
 	auth.AddAuthHeader(req, tokenResponse)
 
