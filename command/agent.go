@@ -9,6 +9,7 @@ import (
 	"../auth"
 	"../config"
 	"../utils"
+	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 )
 
@@ -28,13 +29,26 @@ var Agent = cli.Command{
 		client := &http.Client{
 			Timeout: time.Second * 3,
 		}
-		backups := actions.ListBackups(client, tokenResponse)
 
-		for _, backup := range backups {
-			utils.Schedule(client, tokenResponse, backup)
-		}
+		backups := map[string]actions.Backup{}
+		crons := map[string]*cron.Cron{}
 
-		time.Sleep(time.Minute * 2)
+		cr := cron.New()
+		cr.AddFunc("* * * * *", func() {
+			log.Println("Checking for changes to backups...")
+			backups = actions.ListBackups(client, tokenResponse, actions.BACKUP_TYPE_SCHEDULED)
+
+			for id, _ := range crons {
+				crons[id].Stop()
+			}
+
+			for _, backup := range backups {
+				crons[backup.ID] = utils.Schedule(client, tokenResponse, backup)
+			}
+		})
+		cr.Start()
+
+		time.Sleep(time.Minute * 100)
 
 		return nil
 	},
