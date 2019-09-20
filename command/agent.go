@@ -36,14 +36,22 @@ var Agent = cli.Command{
 		cr := cron.New()
 		cr.AddFunc("* * * * *", func() {
 			log.Println("Checking for changes to backups...")
-			backups = actions.ListBackups(client, tokenResponse, actions.BACKUP_TYPE_SCHEDULED)
+			newBackups := actions.ListBackups(client, tokenResponse, actions.BACKUP_TYPE_SCHEDULED)
+			var toReschedule []string
 
-			for id, _ := range crons {
-				crons[id].Stop()
+			for id := range newBackups {
+				if backups[id] != newBackups[id] {
+					toReschedule = append(toReschedule, id)
+				}
 			}
 
-			for _, backup := range backups {
-				crons[backup.ID] = utils.Schedule(client, tokenResponse, backup)
+			backups = newBackups
+
+			for _, id := range toReschedule {
+				if cron, ok := crons[id]; ok {
+					cron.Stop()
+				}
+				crons[id] = utils.Schedule(client, tokenResponse, backups[id])
 			}
 		})
 		cr.Start()
