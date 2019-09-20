@@ -26,7 +26,9 @@ func RunBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 	log.Printf("Command: %s\n\n", backup.Command)
 	out, err := ExecuteCommand(backup.Command)
 	if err != nil {
-		log.Fatal(err)
+		// In the future we can use this block to determine status code, but for now just send the error the the API
+		log.Println(err)
+		out = err.Error()
 	}
 	fmt.Println(out)
 
