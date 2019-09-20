@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
+	"strconv"
 
 	"../auth"
 )
@@ -50,7 +52,7 @@ func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 	return backup
 }
 
-func ListBackups(client *http.Client, tokenResponse auth.AccessTokenResponse) []Backup {
+func ListBackups(client *http.Client, tokenResponse auth.AccessTokenResponse, backupType int) map[string]Backup {
 	req, err := http.NewRequest("GET", "http://localhost:8000/backups/", nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
@@ -72,12 +74,17 @@ func ListBackups(client *http.Client, tokenResponse auth.AccessTokenResponse) []
 		log.Fatal("Error reading body. ", err)
 	}
 
-	backups := make([]Backup, 0)
-	json.Unmarshal(body, &backups)
+	allBackups := make([]Backup, 0)
+	filteredBackupMap := map[string]Backup{}
+	json.Unmarshal(body, &allBackups)
 
-	for idx, _ := range backups {
-		backups[idx].Cron = "* * * * *"
+	for i, _ := range allBackups {
+		if allBackups[i].Type != backupType {
+			continue
+		}
+		allBackups[i].Cron = "*/" + strconv.Itoa(rand.Intn(2)+1) + " * * * *"
+		filteredBackupMap[allBackups[i].ID] = allBackups[i]
 	}
 
-	return backups
+	return filteredBackupMap
 }
