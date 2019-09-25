@@ -11,9 +11,9 @@ import (
 )
 
 func Schedule(client *http.Client, tokenResponse auth.AccessTokenResponse, backup actions.Backup) *cron.Cron {
-	log.Println("Schedule " + backup.Name + " for " + backup.Cron)
+	log.Println("Schedule " + backup.Name + " for " + backup.Schedule)
 	c := cron.New()
-	c.AddFunc(backup.Cron, func() { RunBackup(client, tokenResponse, backup) })
+	c.AddFunc(backup.Schedule, func() { RunBackup(client, tokenResponse, backup) })
 	c.Start()
 	return c
 }

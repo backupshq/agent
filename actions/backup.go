@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
-	"strconv"
 
 	"../auth"
 )
@@ -22,7 +20,7 @@ type Backup struct {
 	Description string
 	Type        int
 	Command     string
-	Cron        string
+	Schedule    string
 }
 
 func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, backupId string) Backup {
@@ -82,7 +80,6 @@ func ListBackups(client *http.Client, tokenResponse auth.AccessTokenResponse, ba
 		if allBackups[i].Type != backupType {
 			continue
 		}
-		allBackups[i].Cron = "*/" + strconv.Itoa(rand.Intn(2)+1) + " * * * *"
 		filteredBackupMap[allBackups[i].ID] = allBackups[i]
 	}
 
