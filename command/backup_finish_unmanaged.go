@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"../actions"
+	"../api"
 	"../config"
 	"github.com/urfave/cli"
 )
@@ -33,9 +33,9 @@ var BackupFinishUnmanaged = cli.Command{
 
 		config := config.LoadCli(c)
 
-		client := actions.NewClient(config)
+		client := api.NewClient(config)
 
-		job := actions.Job{ID: c.Args().Get(0)}
+		job := api.Job{ID: c.Args().Get(0)}
 		client.FinishJob(job)
 		log.Printf("Finished Job: %q.\n", job.ID)
 

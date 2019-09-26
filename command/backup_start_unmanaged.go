@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"../actions"
+	"../api"
 	"../config"
 	"github.com/urfave/cli"
 )
@@ -29,11 +29,11 @@ To run any other type of backup, see backupshq job run --help.
 	Action: func(c *cli.Context) error {
 		config := config.LoadCli(c)
 
-		client := actions.NewClient(config)
+		client := api.NewClient(config)
 
 		backupID := c.Args().Get(0)
 		backup := client.GetBackup(backupID)
-		if backup.Type != actions.BACKUP_TYPE_UNMANAGED {
+		if backup.Type != api.BACKUP_TYPE_UNMANAGED {
 			log.Fatal("Cannot start managed backup using start-unmanaged command")
 		}
 

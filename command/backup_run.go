@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"../actions"
+	"../api"
 	"../config"
-	"../utils"
 	"github.com/urfave/cli"
 )
 
@@ -15,14 +15,14 @@ var BackupRun = cli.Command{
 	Action: func(c *cli.Context) error {
 		config := config.LoadCli(c)
 
-		client := actions.NewClient(config)
+		client := api.NewClient(config)
 
 		backup := client.GetBackup(c.Args().Get(0))
-		if backup.Type == actions.BACKUP_TYPE_UNMANAGED {
+		if backup.Type == api.BACKUP_TYPE_UNMANAGED {
 			log.Fatal("Cannot start unmanaged backup using `run` command, try `start-unmanaged`")
 		}
 
-		utils.RunBackup(client, backup)
+		actions.RunBackup(client, backup)
 
 		return nil
 	},
