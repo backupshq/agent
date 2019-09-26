@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -33,20 +32,7 @@ var BackupRun = cli.Command{
 			log.Fatal("Cannot start unmanaged backup using `run` command, try `start-unmanaged`")
 		}
 
-		job := actions.StartJob(client, tokenResponse, c.Args().Get(0))
-		fmt.Printf("Started a new job with id %q.\n", job.ID)
-
-		fmt.Println("Running backup...")
-		fmt.Printf("Command: %s\n\n", backup.Command)
-		out, err := utils.ExecuteCommand(backup.Command)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(out)
-
-		fmt.Println("Publishing results to API.")
-		actions.FinishJob(client, tokenResponse, job)
-		actions.SendLogs(client, tokenResponse, job, out)
+		utils.RunBackup(client, tokenResponse, backup)
 
 		return nil
 	},

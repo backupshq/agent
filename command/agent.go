@@ -1,19 +1,54 @@
 package command
 
-import "log"
-import "net/http"
-import "encoding/json"
-import "io/ioutil"
-import "github.com/urfave/cli"
-import "time"
-import "../config"
-import "../auth"
+import (
+	"log"
+	"net/http"
+	"time"
+
+	"../actions"
+	"../auth"
+	"../config"
+	"../utils"
+	"github.com/robfig/cron"
+	"github.com/urfave/cli"
+)
+
+func getLatestSchema(client *http.Client, tokenResponse auth.AccessTokenResponse, backups map[string]actions.Backup, crons map[string]*cron.Cron) (map[string]actions.Backup, map[string]*cron.Cron) {
+	log.Println("Checking for changes to backups...")
+	newBackups := actions.ListBackups(client, tokenResponse, actions.BACKUP_TYPE_SCHEDULED)
+	log.Println("Scheduled backups pulled from the API:", len(newBackups))
+
+	didUpdate := false
+	for id := range newBackups {
+		if backups[id] != newBackups[id] {
+			log.Println("Updated backup: " + newBackups[id].Name)
+			didUpdate = true
+			if cron, ok := crons[id]; ok { // checks if there's an existing cron job for this backup
+				cron.Stop()
+			}
+			crons[id] = utils.Schedule(client, tokenResponse, newBackups[id])
+		}
+	}
+
+	if !didUpdate {
+		log.Println("No changes detected")
+	}
+
+	return newBackups, crons
+}
 
 var Agent = cli.Command{
 	Name:  "agent",
 	Usage: "Run the BackupsHQ agent",
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "sync",
+			Value: "* * * * *",
+			Usage: "Cron expression representing how frequently the agent will sync with the API.",
+		},
+	},
 	Action: func(c *cli.Context) error {
-		log.Println("Starting BackupsHQ agent")
+		log.Println("Starting BackupsHQ agent with sync frequency:", c.String("sync"))
 
 		config := config.LoadCli(c)
 
@@ -25,32 +60,15 @@ var Agent = cli.Command{
 		client := &http.Client{
 			Timeout: time.Second * 3,
 		}
-		req, err := http.NewRequest("GET", "http://localhost:8000/backups", nil)
-		if err != nil {
-			log.Fatal("Error reading request. ", err)
-		}
-		auth.AddAuthHeader(req, tokenResponse)
 
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Fatal("Error reading response. ", err)
-		}
-		defer resp.Body.Close()
+		backups, crons := getLatestSchema(client, tokenResponse, map[string]actions.Backup{}, map[string]*cron.Cron{})
+		cr := cron.New()
+		cr.AddFunc(c.String("sync"), func() {
+			backups, crons = getLatestSchema(client, tokenResponse, backups, crons)
+		})
+		cr.Start()
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal("Error reading body. ", err)
-		}
-
-		var backups []interface{}
-		err = json.Unmarshal(body, &backups)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, backup := range backups {
-			log.Println(backup)
-		}
+		time.Sleep(time.Minute * 100)
 
 		return nil
 	},

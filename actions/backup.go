@@ -20,6 +20,7 @@ type Backup struct {
 	Description string
 	Type        int
 	Command     string
+	Schedule    string
 }
 
 func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, backupId string) Backup {
@@ -36,7 +37,7 @@ func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Fatal("Unable to start job: HTTP " + resp.Status)
+		log.Fatal("Unable to get backup: HTTP " + resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -47,4 +48,40 @@ func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 	var backup Backup
 	err = json.Unmarshal(body, &backup)
 	return backup
+}
+
+func ListBackups(client *http.Client, tokenResponse auth.AccessTokenResponse, backupType int) map[string]Backup {
+	req, err := http.NewRequest("GET", "http://localhost:8000/backups/", nil)
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+	auth.AddAuthHeader(req, tokenResponse)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Fatal("Unable to get backups: HTTP " + resp.Status)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading body. ", err)
+	}
+
+	allBackups := make([]Backup, 0)
+	filteredBackupMap := map[string]Backup{}
+	json.Unmarshal(body, &allBackups)
+
+	for i, _ := range allBackups {
+		if allBackups[i].Type != backupType {
+			continue
+		}
+		filteredBackupMap[allBackups[i].ID] = allBackups[i]
+	}
+
+	return filteredBackupMap
 }
