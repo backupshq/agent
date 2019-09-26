@@ -3,23 +3,21 @@ package utils
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"../actions"
-	"../auth"
 	"github.com/robfig/cron"
 )
 
-func Schedule(client *http.Client, tokenResponse auth.AccessTokenResponse, backup actions.Backup) *cron.Cron {
+func Schedule(client *actions.ApiClient, backup actions.Backup) *cron.Cron {
 	log.Println("Schedule " + backup.Name + " for " + backup.Schedule)
 	c := cron.New()
-	c.AddFunc(backup.Schedule, func() { RunBackup(client, tokenResponse, backup) })
+	c.AddFunc(backup.Schedule, func() { RunBackup(client, backup) })
 	c.Start()
 	return c
 }
 
-func RunBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, backup actions.Backup) {
-	job := actions.StartJob(client, tokenResponse, backup.ID)
+func RunBackup(client *actions.ApiClient, backup actions.Backup) {
+	job := client.StartJob(backup.ID)
 	log.Printf("Started a new job with id %q.\n", job.ID)
 
 	log.Println("Running backup...")
@@ -33,6 +31,6 @@ func RunBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 	fmt.Println(out)
 
 	log.Println("Publishing results to API.")
-	actions.FinishJob(client, tokenResponse, job)
-	actions.SendLogs(client, tokenResponse, job, out)
+	client.FinishJob(job)
+	client.SendLogs(job, out)
 }

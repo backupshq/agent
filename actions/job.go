@@ -15,14 +15,14 @@ type Job struct {
 	ID string
 }
 
-func StartJob(client *http.Client, tokenResponse auth.AccessTokenResponse, backupId string) Job {
+func (c *ApiClient) StartJob(backupId string) Job {
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/backups/%s/start", backupId), nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, tokenResponse)
+	auth.AddAuthHeader(req, c.tokenResponse)
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
 	}
@@ -42,14 +42,14 @@ func StartJob(client *http.Client, tokenResponse auth.AccessTokenResponse, backu
 	return startedJob
 }
 
-func FinishJob(client *http.Client, tokenResponse auth.AccessTokenResponse, job Job) {
+func (c *ApiClient) FinishJob(job Job) {
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/finish", job.ID), nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, tokenResponse)
+	auth.AddAuthHeader(req, c.tokenResponse)
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
 	}
@@ -58,16 +58,16 @@ func FinishJob(client *http.Client, tokenResponse auth.AccessTokenResponse, job 
 	return
 }
 
-func SendLogs(client *http.Client, tokenResponse auth.AccessTokenResponse, job Job, logStr string) {
+func (c *ApiClient) SendLogs(job Job, logStr string) {
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/logs", job.ID), strings.NewReader(logStr))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
 	req.Header.Set("Content-Type", "text/plain")
 
-	auth.AddAuthHeader(req, tokenResponse)
+	auth.AddAuthHeader(req, c.tokenResponse)
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
 	}

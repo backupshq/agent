@@ -1,22 +1,22 @@
 package command
 
-import "github.com/urfave/cli"
-import "time"
-import "os"
-import "bufio"
-import "log"
-import "net/http"
-import "../config"
-import "../auth"
-import "../actions"
+import (
+	"bufio"
+	"log"
+	"os"
+
+	"../actions"
+	"../config"
+	"github.com/urfave/cli"
+)
 
 var BackupFinishUnmanaged = cli.Command{
 	Name:  "finish-unmanaged",
 	Usage: "Finish an unmanaged backup",
 	Flags: []cli.Flag{
 		cli.BoolFlag{
-			Name:   "log-stdin",
-			Usage:  "Log the stdin channel",
+			Name:  "log-stdin",
+			Usage: "Log the stdin channel",
 		},
 	},
 	Action: func(c *cli.Context) error {
@@ -33,17 +33,10 @@ var BackupFinishUnmanaged = cli.Command{
 
 		config := config.LoadCli(c)
 
-		tokenResponse, err := auth.GetAccessToken(config)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		client := &http.Client{
-			Timeout: time.Second * 3,
-		}
+		client := actions.NewClient(config)
 
 		job := actions.Job{ID: c.Args().Get(0)}
-		actions.FinishJob(client, tokenResponse, job)
+		client.FinishJob(job)
 		log.Printf("Finished Job: %q.\n", job.ID)
 
 		return nil
