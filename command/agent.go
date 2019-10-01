@@ -2,20 +2,18 @@ package command
 
 import (
 	"log"
-	"net/http"
 	"time"
 
 	"../actions"
-	"../auth"
+	"../api"
 	"../config"
-	"../utils"
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 )
 
-func getLatestSchema(client *http.Client, tokenResponse auth.AccessTokenResponse, backups map[string]actions.Backup, crons map[string]*cron.Cron) (map[string]actions.Backup, map[string]*cron.Cron) {
+func getLatestSchema(client *api.ApiClient, backups map[string]api.Backup, crons map[string]*cron.Cron) (map[string]api.Backup, map[string]*cron.Cron) {
 	log.Println("Checking for changes to backups...")
-	newBackups := actions.ListBackups(client, tokenResponse, actions.BACKUP_TYPE_SCHEDULED)
+	newBackups := client.ListBackups(api.BACKUP_TYPE_SCHEDULED)
 	log.Println("Scheduled backups pulled from the API:", len(newBackups))
 
 	didUpdate := false
@@ -26,7 +24,7 @@ func getLatestSchema(client *http.Client, tokenResponse auth.AccessTokenResponse
 			if cron, ok := crons[id]; ok { // checks if there's an existing cron job for this backup
 				cron.Stop()
 			}
-			crons[id] = utils.Schedule(client, tokenResponse, newBackups[id])
+			crons[id] = actions.Schedule(client, newBackups[id])
 		}
 	}
 
@@ -52,19 +50,12 @@ var Agent = cli.Command{
 
 		config := config.LoadCli(c)
 
-		tokenResponse, err := auth.GetAccessToken(config)
-		if err != nil {
-			log.Fatal(err)
-		}
+		client := api.NewClient(config)
 
-		client := &http.Client{
-			Timeout: time.Second * 3,
-		}
-
-		backups, crons := getLatestSchema(client, tokenResponse, map[string]actions.Backup{}, map[string]*cron.Cron{})
+		backups, crons := getLatestSchema(client, map[string]api.Backup{}, map[string]*cron.Cron{})
 		cr := cron.New()
 		cr.AddFunc(c.String("sync"), func() {
-			backups, crons = getLatestSchema(client, tokenResponse, backups, crons)
+			backups, crons = getLatestSchema(client, backups, crons)
 		})
 		cr.Start()
 

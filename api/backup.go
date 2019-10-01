@@ -1,4 +1,4 @@
-package actions
+package api
 
 import (
 	"encoding/json"
@@ -23,14 +23,14 @@ type Backup struct {
 	Schedule    string
 }
 
-func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, backupId string) Backup {
+func (c *ApiClient) GetBackup(backupId string) Backup {
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8000/backups/%s", backupId), nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, tokenResponse)
+	auth.AddAuthHeader(req, c.tokenResponse)
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
 	}
@@ -50,14 +50,14 @@ func GetBackup(client *http.Client, tokenResponse auth.AccessTokenResponse, back
 	return backup
 }
 
-func ListBackups(client *http.Client, tokenResponse auth.AccessTokenResponse, backupType int) map[string]Backup {
+func (c *ApiClient) ListBackups(backupType int) map[string]Backup {
 	req, err := http.NewRequest("GET", "http://localhost:8000/backups/", nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, tokenResponse)
+	auth.AddAuthHeader(req, c.tokenResponse)
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
 	}

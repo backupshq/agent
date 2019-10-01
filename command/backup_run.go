@@ -2,13 +2,10 @@ package command
 
 import (
 	"log"
-	"net/http"
-	"time"
 
 	"../actions"
-	"../auth"
+	"../api"
 	"../config"
-	"../utils"
 	"github.com/urfave/cli"
 )
 
@@ -18,21 +15,14 @@ var BackupRun = cli.Command{
 	Action: func(c *cli.Context) error {
 		config := config.LoadCli(c)
 
-		tokenResponse, err := auth.GetAccessToken(config)
-		if err != nil {
-			log.Fatal(err)
-		}
+		client := api.NewClient(config)
 
-		client := &http.Client{
-			Timeout: time.Second * 3,
-		}
-
-		backup := actions.GetBackup(client, tokenResponse, c.Args().Get(0))
-		if backup.Type == actions.BACKUP_TYPE_UNMANAGED {
+		backup := client.GetBackup(c.Args().Get(0))
+		if backup.Type == api.BACKUP_TYPE_UNMANAGED {
 			log.Fatal("Cannot start unmanaged backup using `run` command, try `start-unmanaged`")
 		}
 
-		utils.RunBackup(client, tokenResponse, backup)
+		actions.RunBackup(client, backup)
 
 		return nil
 	},
