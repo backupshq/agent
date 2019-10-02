@@ -13,7 +13,8 @@ var BackupRun = cli.Command{
 	Name:  "run",
 	Usage: "Run a one-off backup and send the results to the API",
 	Action: func(c *cli.Context) error {
-		config := config.LoadCli(c)
+		loader := config.NewConfigLoader()
+		config := loader.LoadCli(c)
 
 		client := api.NewClient(config)
 

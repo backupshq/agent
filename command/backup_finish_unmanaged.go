@@ -31,7 +31,8 @@ var BackupFinishUnmanaged = cli.Command{
 			}
 		}
 
-		config := config.LoadCli(c)
+		loader := config.NewConfigLoader()
+		config := loader.LoadCli(c)
 
 		client := api.NewClient(config)
 

@@ -27,7 +27,8 @@ To run any other type of backup, see backupshq job run --help.
 		},
 	},
 	Action: func(c *cli.Context) error {
-		config := config.LoadCli(c)
+		loader := config.NewConfigLoader()
+		config := loader.LoadCli(c)
 
 		client := api.NewClient(config)
 
