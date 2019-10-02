@@ -1,9 +1,16 @@
 package config
 
-import "github.com/BurntSushi/toml"
-import "github.com/urfave/cli"
-import "io/ioutil"
-import "log"
+import (
+	"bytes"
+	"html/template"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+
+	"github.com/BurntSushi/toml"
+	"github.com/urfave/cli"
+)
 
 type Config struct {
 	Auth struct {
@@ -12,7 +19,38 @@ type Config struct {
 	}
 }
 
-func LoadString(tomlText string) (*Config, error) {
+type ConfigLoader struct {
+	env map[string]string
+}
+
+func NewConfigLoader() ConfigLoader {
+	envrionment := map[string]string{}
+	for _, e := range os.Environ() {
+		pair := strings.Split(e, "=")
+		envrionment[pair[0]] = pair[1]
+	}
+	return ConfigLoader{env: envrionment}
+}
+
+func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
+
+	funcMap := template.FuncMap{
+		"env": func(val string) string {
+			return l.env[val]
+		},
+	}
+
+	var templateReader bytes.Buffer
+	tpl, err := template.New("config").Funcs(funcMap).Parse(tomlText)
+	if err != nil {
+		log.Fatal("Error templating config file: ", err)
+	}
+	err = tpl.Execute(&templateReader, map[string]string{})
+	if err != nil {
+		log.Fatal("Error templating config file: ", err)
+	}
+	tomlText = templateReader.String()
+
 	var config Config
 	if _, err := toml.Decode(tomlText, &config); err != nil {
 		return nil, err
@@ -21,22 +59,22 @@ func LoadString(tomlText string) (*Config, error) {
 	return &config, nil
 }
 
-func LoadFile(filePath string) (*Config, error) {
+func (l *ConfigLoader) LoadFile(filePath string) (*Config, error) {
 	tomlText, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	return LoadString(string(tomlText))
+	return l.LoadString(string(tomlText))
 }
 
-func LoadCli(c *cli.Context) *Config {
+func (l *ConfigLoader) LoadCli(c *cli.Context) *Config {
 	filePath := c.GlobalString("config")
 
 	if filePath == "" {
 		log.Fatal("Error: configuration file required. Use the --config flag: `backupshq --config config.toml`.")
 	}
-	config, err := LoadFile(filePath)
+	config, err := l.LoadFile(filePath)
 
 	if err != nil {
 		log.Fatal("Error load configuration file: " + err.Error())
