@@ -68,6 +68,18 @@ client_secret = "secret"
 			t.Errorf("got %q want %q", config.Auth.ClientId, "test")
 		}
 	})
+
+	t.Run("handle invalid env var", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+[auth]
+client_id = "{{ env "TESTVAR"}}"
+client_secret = "secret"
+`)
+		if config != nil || err == nil {
+			t.Errorf("unknown env variable should return an error")
+		}
+	})
 }
 
 func TestFile(t *testing.T) {
