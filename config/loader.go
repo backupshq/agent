@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -30,19 +31,23 @@ func NewConfigLoader(envrionment map[string]string) ConfigLoader {
 func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 
 	funcMap := template.FuncMap{
-		"env": func(val string) string {
-			return l.env[val]
+		"env": func(key string) (string, error) {
+			val := l.env[key]
+			if val == "" {
+				return "", errors.New("Cannot find envrionment variable: " + key)
+			}
+			return l.env[key], nil
 		},
 	}
 
 	var templateReader bytes.Buffer
 	tpl, err := template.New("config").Funcs(funcMap).Parse(tomlText)
 	if err != nil {
-		log.Fatal("Error templating config file: ", err)
+		return nil, err
 	}
 	err = tpl.Execute(&templateReader, map[string]string{})
 	if err != nil {
-		log.Fatal("Error templating config file: ", err)
+		return nil, err
 	}
 	tomlText = templateReader.String()
 
