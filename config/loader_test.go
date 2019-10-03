@@ -5,8 +5,8 @@ import (
 )
 
 func TestString(t *testing.T) {
-	loader := NewConfigLoader(map[string]string{"TESTVAR": "test"})
 	t.Run("load empty configuration", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
 		config, _ := loader.LoadString("")
 
 		if config.Auth.ClientId != "" {
@@ -15,6 +15,7 @@ func TestString(t *testing.T) {
 	})
 
 	t.Run("load simple config", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
 		config, _ := loader.LoadString(`
 [auth]
 client_id = "id"
@@ -29,6 +30,7 @@ client_secret = "secret"
 	})
 
 	t.Run("load simple config with odd casing", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
 		config, _ := loader.LoadString(`
 [Auth]
 CLIENT_ID = "id"
@@ -43,6 +45,7 @@ Client_Secret = "secret"
 	})
 
 	t.Run("invalid toml returns error", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
 		config, err := loader.LoadString(`
 []Not valid
 this doesn't work
@@ -54,6 +57,7 @@ this doesn't work
 	})
 
 	t.Run("replace env key with val", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{"TESTVAR": "test"})
 		config, _ := loader.LoadString(`
 [auth]
 client_id = "{{ env "TESTVAR"}}"
@@ -67,8 +71,8 @@ client_secret = "secret"
 }
 
 func TestFile(t *testing.T) {
-	loader := NewConfigLoader(map[string]string{"TESTVAR": "test"})
 	t.Run("load simple file", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
 		config, err := loader.LoadFile("example.toml")
 
 		if err != nil {
