@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 
+	"../utils"
+
 	"github.com/BurntSushi/toml"
 	"github.com/urfave/cli"
 )
@@ -61,13 +63,14 @@ func (l *ConfigLoader) LoadFile(filePath string) (*Config, error) {
 	return l.LoadString(string(tomlText))
 }
 
-func (l *ConfigLoader) LoadCli(c *cli.Context) *Config {
+func LoadCli(c *cli.Context) *Config {
+	loader := NewConfigLoader(utils.GetEvnVariables())
 	filePath := c.GlobalString("config")
 
 	if filePath == "" {
 		log.Fatal("Error: configuration file required. Use the --config flag: `backupshq --config config.toml`.")
 	}
-	config, err := l.LoadFile(filePath)
+	config, err := loader.LoadFile(filePath)
 
 	if err != nil {
 		log.Fatal("Error load configuration file: " + err.Error())

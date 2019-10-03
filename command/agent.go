@@ -7,7 +7,6 @@ import (
 	"../actions"
 	"../api"
 	"../config"
-	"../utils"
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 )
@@ -49,9 +48,7 @@ var Agent = cli.Command{
 	Action: func(c *cli.Context) error {
 		log.Println("Starting BackupsHQ agent with sync frequency:", c.String("sync"))
 
-		env := utils.GetEvnVariables()
-		loader := config.NewConfigLoader(env)
-		config := loader.LoadCli(c)
+		config := config.LoadCli(c)
 
 		client := api.NewClient(config)
 

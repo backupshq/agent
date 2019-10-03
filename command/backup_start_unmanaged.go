@@ -6,7 +6,6 @@ import (
 
 	"../api"
 	"../config"
-	"../utils"
 	"github.com/urfave/cli"
 )
 
@@ -28,9 +27,7 @@ To run any other type of backup, see backupshq job run --help.
 		},
 	},
 	Action: func(c *cli.Context) error {
-		env := utils.GetEvnVariables()
-		loader := config.NewConfigLoader(env)
-		config := loader.LoadCli(c)
+		config := config.LoadCli(c)
 
 		client := api.NewClient(config)
 
