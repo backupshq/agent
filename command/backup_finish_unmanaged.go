@@ -7,6 +7,7 @@ import (
 
 	"../api"
 	"../config"
+	"../utils"
 	"github.com/urfave/cli"
 )
 
@@ -31,7 +32,8 @@ var BackupFinishUnmanaged = cli.Command{
 			}
 		}
 
-		loader := config.NewConfigLoader()
+		env := utils.GetEvnVariables()
+		loader := config.NewConfigLoader(env)
 		config := loader.LoadCli(c)
 
 		client := api.NewClient(config)

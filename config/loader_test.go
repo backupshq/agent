@@ -1,13 +1,11 @@
 package config
 
 import (
-	"os"
 	"testing"
 )
 
 func TestString(t *testing.T) {
-	os.Setenv("TESTVAR", "test")
-	loader := NewConfigLoader()
+	loader := NewConfigLoader(map[string]string{"TESTVAR": "test"})
 	t.Run("load empty configuration", func(t *testing.T) {
 		config, _ := loader.LoadString("")
 
@@ -69,7 +67,7 @@ client_secret = "secret"
 }
 
 func TestFile(t *testing.T) {
-	loader := NewConfigLoader()
+	loader := NewConfigLoader(map[string]string{"TESTVAR": "test"})
 	t.Run("load simple file", func(t *testing.T) {
 		config, err := loader.LoadFile("example.toml")
 

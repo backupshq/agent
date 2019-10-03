@@ -5,8 +5,6 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"os"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/urfave/cli"
@@ -23,12 +21,7 @@ type ConfigLoader struct {
 	env map[string]string
 }
 
-func NewConfigLoader() ConfigLoader {
-	envrionment := map[string]string{}
-	for _, e := range os.Environ() {
-		pair := strings.Split(e, "=")
-		envrionment[pair[0]] = pair[1]
-	}
+func NewConfigLoader(envrionment map[string]string) ConfigLoader {
 	return ConfigLoader{env: envrionment}
 }
 
