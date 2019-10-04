@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -54,6 +55,9 @@ this doesn't work
 		if config != nil || err == nil {
 			t.Errorf("error should be returned from bad toml")
 		}
+		if !strings.Contains(err.Error(), "TOML syntax error: ") {
+			t.Errorf("error message should mention a template error, got %q", err.Error())
+		}
 	})
 
 	t.Run("replace env key with val", func(t *testing.T) {
@@ -78,6 +82,24 @@ client_secret = "secret"
 `)
 		if config != nil || err == nil {
 			t.Errorf("unknown env variable should return an error")
+		}
+		if !strings.Contains(err.Error(), "Missing environment variable: TESTVAR") {
+			t.Errorf("error message should reference the missing environment variable, got %q", err.Error())
+		}
+	})
+
+	t.Run("handle invalid template syntax", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+[auth]
+client_id = "{{"
+client_secret = "secret"
+`)
+		if config != nil || err == nil {
+			t.Errorf("bad template syntax should return an error")
+		}
+		if !strings.Contains(err.Error(), "Template syntax error: ") {
+			t.Errorf("error message should mention a template error, got %q", err.Error())
 		}
 	})
 }
