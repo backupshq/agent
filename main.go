@@ -28,6 +28,13 @@ func createApp() *cli.App {
 				command.BackupFinishUnmanaged,
 			},
 		},
+		{
+			Name:  "config",
+			Usage: "Interact with configuration files",
+			Subcommands: []cli.Command{
+				command.ConfigShow,
+			},
+		},
 	}
 
 	return app
