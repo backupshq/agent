@@ -28,8 +28,7 @@ func NewConfigLoader(env map[string]string) ConfigLoader {
 	return ConfigLoader{env: env}
 }
 
-func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
-
+func (l *ConfigLoader) ApplyEnvironmentVariables(tomlText string) (string, error) {
 	funcMap := template.FuncMap{
 		"env": func(key string) (string, error) {
 			val := l.env[key]
@@ -40,16 +39,24 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		},
 	}
 
-	var templateReader bytes.Buffer
+	var buffer bytes.Buffer
 	tpl, err := template.New("config").Funcs(funcMap).Parse(tomlText)
 	if err != nil {
-		return nil, errors.New("Template syntax error: " + err.Error())
+		return "", errors.New("Template syntax error: " + err.Error())
 	}
-	err = tpl.Execute(&templateReader, map[string]string{})
+	err = tpl.Execute(&buffer, map[string]string{})
+	if err != nil {
+		return "", err
+	}
+
+	return buffer.String(), nil
+}
+
+func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
+	tomlText, err := l.ApplyEnvironmentVariables(tomlText)
 	if err != nil {
 		return nil, err
 	}
-	tomlText = templateReader.String()
 
 	var config Config
 	if _, err := toml.Decode(tomlText, &config); err != nil {
