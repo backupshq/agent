@@ -69,7 +69,7 @@ func (l *ConfigLoader) LoadFile(filePath string) (*Config, error) {
 }
 
 func LoadCli(c *cli.Context) *Config {
-	loader := NewConfigLoader(utils.GetEvnVariables())
+	loader := NewConfigLoader(utils.EnvMap())
 	filePath := c.GlobalString("config")
 
 	if filePath == "" {

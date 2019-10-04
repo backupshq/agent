@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func GetEvnVariables() map[string]string {
+func EnvMap() map[string]string {
 	envrionment := map[string]string{}
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
