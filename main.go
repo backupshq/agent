@@ -18,7 +18,6 @@ func createApp() *cli.App {
 	}
 	app.Commands = []cli.Command{
 		command.Agent,
-		command.ExampleConfig,
 		{
 			Name:  "backup",
 			Usage: "Interact with backups",
@@ -33,6 +32,7 @@ func createApp() *cli.App {
 			Usage: "Interact with configuration files",
 			Subcommands: []cli.Command{
 				command.ConfigShow,
+				command.ConfigExample,
 			},
 		},
 	}
