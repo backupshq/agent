@@ -34,7 +34,7 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		"env": func(key string) (string, error) {
 			val := l.env[key]
 			if val == "" {
-				return "", errors.New("Cannot find environment variable: " + key)
+				return "", errors.New("Missing environment variable: " + key)
 			}
 			return l.env[key], nil
 		},
@@ -43,7 +43,7 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 	var templateReader bytes.Buffer
 	tpl, err := template.New("config").Funcs(funcMap).Parse(tomlText)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Template syntax error: " + err.Error())
 	}
 	err = tpl.Execute(&templateReader, map[string]string{})
 	if err != nil {
@@ -53,7 +53,7 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 
 	var config Config
 	if _, err := toml.Decode(tomlText, &config); err != nil {
-		return nil, err
+		return nil, errors.New("TOML syntax error: " + err.Error())
 	}
 
 	return &config, nil
@@ -78,7 +78,7 @@ func LoadCli(c *cli.Context) *Config {
 	config, err := loader.LoadFile(filePath)
 
 	if err != nil {
-		log.Fatal("Error load configuration file: " + err.Error())
+		log.Fatal("Error loading configuration file: " + err.Error())
 	}
 
 	return config
