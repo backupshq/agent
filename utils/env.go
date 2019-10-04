@@ -6,10 +6,10 @@ import (
 )
 
 func EnvMap() map[string]string {
-	envrionment := map[string]string{}
+	environment := map[string]string{}
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
-		envrionment[pair[0]] = pair[1]
+		environment[pair[0]] = pair[1]
 	}
-	return envrionment
+	return environment
 }

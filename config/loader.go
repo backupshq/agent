@@ -24,8 +24,8 @@ type ConfigLoader struct {
 	env map[string]string
 }
 
-func NewConfigLoader(envrionment map[string]string) ConfigLoader {
-	return ConfigLoader{env: envrionment}
+func NewConfigLoader(env map[string]string) ConfigLoader {
+	return ConfigLoader{env: env}
 }
 
 func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
@@ -34,7 +34,7 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		"env": func(key string) (string, error) {
 			val := l.env[key]
 			if val == "" {
-				return "", errors.New("Cannot find envrionment variable: " + key)
+				return "", errors.New("Cannot find environment variable: " + key)
 			}
 			return l.env[key], nil
 		},
