@@ -11,11 +11,8 @@ var ConfigShow = cli.Command{
 	Name:  "show",
 	Usage: "Print the configuration file with environment variables applied",
 	Action: func(c *cli.Context) error {
-		filePath := c.GlobalString("config")
+		filePath := config.CliFilePath(c)
 
-		if filePath == "" {
-			log.Fatal("Error: configuration file required. Use the --config flag: `backupshq --config config.toml`.")
-		}
 		tomlText, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			log.Fatal(err)
