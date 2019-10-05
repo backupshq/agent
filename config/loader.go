@@ -5,6 +5,8 @@ import (
 	"errors"
 	"html/template"
 	"io/ioutil"
+	"reflect"
+	"strings"
 
 	"../utils"
 
@@ -16,6 +18,13 @@ type Config struct {
 	Auth struct {
 		ClientId     string `toml:"client_id"`
 		ClientSecret string `toml:"client_secret"`
+		Next         struct {
+			ClientId     string `toml:"red"`
+			ClientSecret string `toml:"blue"`
+		}
+	}
+	High struct {
+		Test string `toml:"test"`
 	}
 }
 
@@ -51,11 +60,53 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 	tomlText = templateReader.String()
 
 	var config Config
-	if _, err := toml.Decode(tomlText, &config); err != nil {
+	metadata, err := toml.Decode(tomlText, &config)
+	if err != nil {
 		return nil, err
 	}
 
+	givenKeys := metadata.Keys()
+	validKeys := getValidKeys(config)
+	var invalidKeys []string
+
+	for _, givenKey := range givenKeys {
+		if !validKeys[givenKey.String()] {
+			invalidKeys = append(invalidKeys, givenKey.String())
+		}
+	}
+	if invalidKeys != nil {
+		return nil, errors.New("Unrecognized TOML key(s) given: " + strings.Join(invalidKeys, ", "))
+	}
+
 	return &config, nil
+}
+
+func getValidKeys(config Config) map[string]bool {
+	validKeys := make(map[string]bool)
+	getStructTags(config, "", validKeys)
+	return validKeys
+}
+
+func getStructTags(structure interface{}, name string, validKeys map[string]bool) {
+	value := reflect.ValueOf(structure)
+	configStruct := value.Type()
+
+	for i := 0; i < value.NumField(); i++ {
+		if value.Field(i).Kind() == reflect.Struct {
+			if name != "" {
+				name = name + "."
+			}
+			nextName := name + strings.ToLower(configStruct.Field(i).Name)
+			validKeys[nextName] = true
+			getStructTags(value.Field(i).Interface(), nextName, validKeys)
+		} else if value.Field(i).Kind() == reflect.String {
+			tag := string(configStruct.Field(i).Tag)
+			removePrefix := strings.Split(tag, ":")[1]
+			removeQuotes := strings.ReplaceAll(removePrefix, "\"", "")
+			validKeys[strings.ToLower(name)+"."+removeQuotes] = true
+		}
+
+	}
 }
 
 func (l *ConfigLoader) LoadFile(filePath string) (*Config, error) {
