@@ -1,17 +1,24 @@
 package command
 
 import (
-	"log"
+	"fmt"
+	"os"
 
+	"../config"
 	"github.com/urfave/cli"
 )
 
 var ConfigValidate = cli.Command{
 	Name:  "validate",
 	Usage: "Validate a BackupsHQ TOML configuration file",
-	Action: func(c *cli.Context) error {
-		log.Println("works")
+	Action: func(c *cli.Context) {
+		_, err := config.LoadCli(c)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 
-		return nil
+		fmt.Println("Config is valid!")
+		os.Exit(0)
 	},
 }
