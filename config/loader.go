@@ -5,7 +5,6 @@ import (
 	"errors"
 	"html/template"
 	"io/ioutil"
-	"log"
 
 	"../utils"
 
@@ -68,18 +67,18 @@ func (l *ConfigLoader) LoadFile(filePath string) (*Config, error) {
 	return l.LoadString(string(tomlText))
 }
 
-func LoadCli(c *cli.Context) *Config {
+func LoadCli(c *cli.Context) (*Config, error) {
 	loader := NewConfigLoader(utils.GetEvnVariables())
 	filePath := c.GlobalString("config")
 
 	if filePath == "" {
-		log.Fatal("Error: configuration file required. Use the --config flag: `backupshq --config config.toml`.")
+		return nil, errors.New("Error: configuration file required. Use the --config flag: `backupshq --config config.toml`.")
 	}
 	config, err := loader.LoadFile(filePath)
 
 	if err != nil {
-		log.Fatal("Error load configuration file: " + err.Error())
+		return nil, errors.New("Error load configuration file: " + err.Error())
 	}
 
-	return config
+	return config, nil
 }
