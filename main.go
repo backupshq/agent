@@ -19,7 +19,6 @@ func createApp() *cli.App {
 	}
 	app.Commands = []cli.Command{
 		command.Agent,
-		command.ExampleConfig,
 		{
 			Name:  "backup",
 			Usage: "Interact with backups",
@@ -34,6 +33,7 @@ func createApp() *cli.App {
 			Usage: "Interact with TOML configurations",
 			Subcommands: []cli.Command{
 				command.ConfigValidate,
+				command.ExampleConfig,
 			},
 		},
 	}

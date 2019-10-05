@@ -1,10 +1,13 @@
 package command
 
-import "fmt"
-import "github.com/urfave/cli"
+import (
+	"fmt"
+
+	"github.com/urfave/cli"
+)
 
 var ExampleConfig = cli.Command{
-	Name:  "example-config",
+	Name:  "example",
 	Usage: "Print an example configuration file",
 	Action: func(c *cli.Context) error {
 		fmt.Print(`[auth]
