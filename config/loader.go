@@ -5,7 +5,6 @@ import (
 	"errors"
 	"html/template"
 	"io/ioutil"
-	"reflect"
 	"strings"
 
 	"../utils"
@@ -65,48 +64,16 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		return nil, err
 	}
 
-	givenKeys := metadata.Keys()
-	validKeys := getValidKeys(config)
-	var invalidKeys []string
-
-	for _, givenKey := range givenKeys {
-		if !validKeys[givenKey.String()] {
-			invalidKeys = append(invalidKeys, givenKey.String())
+	invalidKeys := metadata.Undecoded()
+	if len(invalidKeys) != 0 {
+		var keysAsString []string
+		for _, key := range invalidKeys {
+			keysAsString = append(keysAsString, key.String())
 		}
-	}
-	if invalidKeys != nil {
-		return nil, errors.New("Unrecognized TOML key(s) given: " + strings.Join(invalidKeys, ", "))
+		return nil, errors.New("Unrecognized TOML key(s) given: " + strings.Join(keysAsString, ", "))
 	}
 
 	return &config, nil
-}
-
-func getValidKeys(config Config) map[string]bool {
-	validKeys := make(map[string]bool)
-	getStructTags(config, "", validKeys)
-	return validKeys
-}
-
-func getStructTags(structure interface{}, name string, validKeys map[string]bool) {
-	value := reflect.ValueOf(structure)
-	configStruct := value.Type()
-
-	for i := 0; i < value.NumField(); i++ {
-		if value.Field(i).Kind() == reflect.Struct {
-			if name != "" {
-				name = name + "."
-			}
-			nextName := name + strings.ToLower(configStruct.Field(i).Name)
-			validKeys[nextName] = true
-			getStructTags(value.Field(i).Interface(), nextName, validKeys)
-		} else if value.Field(i).Kind() == reflect.String {
-			tag := string(configStruct.Field(i).Tag)
-			removePrefix := strings.Split(tag, ":")[1]
-			removeQuotes := strings.ReplaceAll(removePrefix, "\"", "")
-			validKeys[strings.ToLower(name)+"."+removeQuotes] = true
-		}
-
-	}
 }
 
 func (l *ConfigLoader) LoadFile(filePath string) (*Config, error) {
