@@ -1,9 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"./command"
 	"github.com/urfave/cli"
-	"os"
 )
 
 func createApp() *cli.App {
@@ -26,6 +27,13 @@ func createApp() *cli.App {
 				command.BackupRun,
 				command.BackupStartUnmanaged,
 				command.BackupFinishUnmanaged,
+			},
+		},
+		{
+			Name:  "config",
+			Usage: "Interact with TOML configurations",
+			Subcommands: []cli.Command{
+				command.ConfigValidate,
 			},
 		},
 	}
