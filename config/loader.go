@@ -128,7 +128,7 @@ func LoadCli(c *cli.Context) (*Config, error) {
 	config, err := loader.LoadFile(filePath)
 
 	if err != nil {
-		return nil, errors.New("Error load configuration file: " + err.Error())
+		return nil, errors.New("Error loading configuration file: " + err.Error())
 	}
 
 	return config, nil
