@@ -14,13 +14,6 @@ type Config struct {
 	Auth struct {
 		ClientId     string `toml:"client_id"`
 		ClientSecret string `toml:"client_secret"`
-		Next         struct {
-			ClientId     string `toml:"red"`
-			ClientSecret string `toml:"blue"`
-		}
-	}
-	High struct {
-		Test string `toml:"test"`
 	}
 }
 
