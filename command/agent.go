@@ -48,10 +48,7 @@ var Agent = cli.Command{
 	Action: func(c *cli.Context) error {
 		log.Println("Starting BackupsHQ agent with sync frequency:", c.String("sync"))
 
-		config, err := config.LoadCli(c)
-		if err != nil {
-			log.Fatal(err)
-		}
+		config := config.LoadCli(c)
 
 		client := api.NewClient(config)
 

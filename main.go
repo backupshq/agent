@@ -30,10 +30,11 @@ func createApp() *cli.App {
 		},
 		{
 			Name:  "config",
-			Usage: "Interact with TOML configurations",
+			Usage: "Interact with configuration files",
 			Subcommands: []cli.Command{
+				command.ConfigShow,
+				command.ConfigExample,
 				command.ConfigValidate,
-				command.ExampleConfig,
 			},
 		},
 	}

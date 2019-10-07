@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"../config"
+	"../utils"
 	"github.com/urfave/cli"
 )
 
@@ -12,8 +13,12 @@ var ConfigValidate = cli.Command{
 	Name:  "validate",
 	Usage: "Validate a BackupsHQ TOML configuration file",
 	Action: func(c *cli.Context) {
-		_, err := config.LoadCli(c)
+		filePath := config.CliFilePath(c)
+		loader := config.NewConfigLoader(utils.EnvMap())
+
+		_, err := loader.LoadFile(filePath)
 		if err != nil {
+			fmt.Println("Error found in config file:")
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
