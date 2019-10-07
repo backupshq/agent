@@ -11,7 +11,7 @@ import (
 
 var ConfigValidate = cli.Command{
 	Name:  "validate",
-	Usage: "Validate a BackupsHQ TOML configuration file",
+	Usage: "Check the configuration file is valid",
 	Action: func(c *cli.Context) {
 		filePath := config.CliFilePath(c)
 		loader := config.NewConfigLoader(utils.EnvMap())
