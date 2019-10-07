@@ -1,7 +1,10 @@
 package command
 
-import "fmt"
-import "github.com/urfave/cli"
+import (
+	"fmt"
+
+	"github.com/urfave/cli"
+)
 
 var ConfigExample = cli.Command{
 	Name:  "example",

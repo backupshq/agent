@@ -136,6 +136,22 @@ client_secret = "secret"
 			t.Errorf("got %q want %q", config.Auth.ClientId, "100")
 		}
 	})
+
+	t.Run("unknown TOML key returns error", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+[auth]
+not_a_real_key = "id"
+client_secret = "secret"
+`)
+		if config != nil || err == nil {
+			t.Errorf("unknown TOML key should return an error")
+			return
+		}
+		if !strings.Contains(err.Error(), "Unrecognized TOML key(s) given: ") {
+			t.Errorf("error message should mention unrecognized key, got %q", err)
+		}
+	})
 }
 
 func TestFile(t *testing.T) {

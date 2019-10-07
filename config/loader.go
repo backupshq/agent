@@ -5,6 +5,7 @@ import (
 	"errors"
 	"html/template"
 	"io/ioutil"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -55,8 +56,18 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 	}
 
 	var config Config
-	if _, err := toml.Decode(tomlText, &config); err != nil {
+	metadata, err := toml.Decode(tomlText, &config)
+	if err != nil {
 		return nil, errors.New("TOML syntax error: " + err.Error())
+	}
+
+	invalidKeys := metadata.Undecoded()
+	if len(invalidKeys) != 0 {
+		var keysAsString []string
+		for _, key := range invalidKeys {
+			keysAsString = append(keysAsString, key.String())
+		}
+		return nil, errors.New("Unrecognized TOML key(s) given: " + strings.Join(keysAsString, ", "))
 	}
 
 	return &config, nil

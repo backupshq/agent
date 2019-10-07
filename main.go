@@ -1,9 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"./command"
 	"github.com/urfave/cli"
-	"os"
 )
 
 func createApp() *cli.App {
@@ -33,6 +34,7 @@ func createApp() *cli.App {
 			Subcommands: []cli.Command{
 				command.ConfigShow,
 				command.ConfigExample,
+				command.ConfigValidate,
 			},
 		},
 	}
