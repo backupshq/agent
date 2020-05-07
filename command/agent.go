@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	"../actions"
-	"../api"
-	"../config"
+	"github.com/backupshq/agent/actions"
+	"github.com/backupshq/agent/api"
+	"github.com/backupshq/agent/config"
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 )

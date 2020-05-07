@@ -2,8 +2,8 @@ package command
 
 import "fmt"
 import "github.com/urfave/cli"
-import "../utils"
-import "../config"
+import "github.com/backupshq/agent/utils"
+import "github.com/backupshq/agent/config"
 import "io/ioutil"
 import "log"
 

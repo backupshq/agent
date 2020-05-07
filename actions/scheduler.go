@@ -3,7 +3,7 @@ package actions
 import (
 	"log"
 
-	"../api"
+	"github.com/backupshq/agent/api"
 	"github.com/robfig/cron"
 )
 

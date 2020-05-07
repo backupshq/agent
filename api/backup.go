@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"../auth"
+	"github.com/backupshq/agent/auth"
 )
 
 const BACKUP_TYPE_UNMANAGED = 0

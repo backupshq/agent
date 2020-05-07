@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"../auth"
+	"github.com/backupshq/agent/auth"
 )
 
 type Job struct {

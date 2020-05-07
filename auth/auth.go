@@ -1,6 +1,6 @@
 package auth
 
-import "../config"
+import "github.com/backupshq/agent/config"
 import "encoding/json"
 import "io/ioutil"
 import "net/http"
