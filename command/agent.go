@@ -7,7 +7,7 @@ import (
 	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
 	"github.com/backupshq/agent/config"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/urfave/cli"
 )
 
