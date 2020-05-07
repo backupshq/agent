@@ -21,7 +21,6 @@ func testLog(l *Logger) {
 	l.Info("Test info")
 	l.Warn("Test warn")
 	l.Error("Test error")
-	l.Fatal("Test fatal")
 }
 
 func assertLog(t *testing.T, log MockLog, expectedMessage string) {
@@ -39,8 +38,8 @@ func TestLogger(t *testing.T) {
 		}
 		testLog(l)
 
-		if len(w.messages) != 5 {
-			t.Errorf("expected 5 messages, got %d", len(w.messages))
+		if len(w.messages) != 4 {
+			t.Errorf("expected 4 messages, got %d", len(w.messages))
 			return
 		}
 
@@ -48,7 +47,6 @@ func TestLogger(t *testing.T) {
 		assertLog(t, w.messages[1], "Test info")
 		assertLog(t, w.messages[2], "Test warn")
 		assertLog(t, w.messages[3], "Test error")
-		assertLog(t, w.messages[4], "Test fatal")
 	})
 
 	t.Run("Test info", func(t *testing.T) {
@@ -60,15 +58,14 @@ func TestLogger(t *testing.T) {
 
 		testLog(l)
 
-		if len(w.messages) != 4 {
-			t.Errorf("expected 4 messages, got %d", len(w.messages))
+		if len(w.messages) != 3 {
+			t.Errorf("expected 3 messages, got %d", len(w.messages))
 			return
 		}
 
 		assertLog(t, w.messages[0], "Test info")
 		assertLog(t, w.messages[1], "Test warn")
 		assertLog(t, w.messages[2], "Test error")
-		assertLog(t, w.messages[3], "Test fatal")
 	})
 
 	t.Run("Test warn", func(t *testing.T) {
@@ -80,14 +77,13 @@ func TestLogger(t *testing.T) {
 
 		testLog(l)
 
-		if len(w.messages) != 3 {
-			t.Errorf("expected 3 messages, got %d", len(w.messages))
+		if len(w.messages) != 2 {
+			t.Errorf("expected 2 messages, got %d", len(w.messages))
 			return
 		}
 
 		assertLog(t, w.messages[0], "Test warn")
 		assertLog(t, w.messages[1], "Test error")
-		assertLog(t, w.messages[2], "Test fatal")
 	})
 
 	t.Run("Test error", func(t *testing.T) {
@@ -99,29 +95,11 @@ func TestLogger(t *testing.T) {
 
 		testLog(l)
 
-		if len(w.messages) != 2 {
-			t.Errorf("expected 2 messages, got %d", len(w.messages))
+		if len(w.messages) != 1 {
+			t.Errorf("expected 1 message, got %d", len(w.messages))
 			return
 		}
 
 		assertLog(t, w.messages[0], "Test error")
-		assertLog(t, w.messages[1], "Test fatal")
-	})
-
-	t.Run("Test fatal", func(t *testing.T) {
-		w := &MockWriter{}
-		l := &Logger{
-			level:  Fatal,
-			writer: w,
-		}
-
-		testLog(l)
-
-		if len(w.messages) != 1 {
-			t.Fatalf("expected 1 message, got %d", len(w.messages))
-			return
-		}
-
-		assertLog(t, w.messages[0], "Test fatal")
 	})
 }

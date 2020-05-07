@@ -1,10 +1,9 @@
 package log
 
-const Debug = 5
-const Info = 4
-const Warn = 3
-const Error = 2
-const Fatal = 1
+const Debug = 4
+const Info = 3
+const Warn = 2
+const Error = 1
 
 type Logger struct {
 	level  int
@@ -33,10 +32,5 @@ func (l *Logger) Warn(message string) {
 func (l *Logger) Error(message string) {
 	if l.level >= Error {
 		l.writer.Write(Error, message)
-	}
-}
-func (l *Logger) Fatal(message string) {
-	if l.level >= Fatal {
-		l.writer.Write(Fatal, message)
 	}
 }
