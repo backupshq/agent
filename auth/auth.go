@@ -26,6 +26,7 @@ func GetAccessToken(config *config.Config) (AccessTokenResponse, error) {
 		"grant_type":    {"client_credentials"},
 		"client_id":     {config.Auth.ClientId},
 		"client_secret": {config.Auth.ClientSecret},
+		"scope":         {"agent"},
 	}
 
 	req, err := http.NewRequest("POST", "http://localhost:8000/auth/token", strings.NewReader(form.Encode()))
@@ -59,4 +60,5 @@ func GetAccessToken(config *config.Config) (AccessTokenResponse, error) {
 
 func AddAuthHeader(req *http.Request, token AccessTokenResponse) {
 	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+	req.Header.Set("Accept", "application/vnd.backupshq.v1+json")
 }
