@@ -80,7 +80,12 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		return nil, err
 	}
 
-	var config Config
+	config := Config{
+		LogLevel: LogLevel{
+			Level: log.Info,
+			Label: "info",
+		},
+	}
 	metadata, err := toml.Decode(tomlText, &config)
 	if err != nil {
 		return nil, errors.New("TOML syntax error: " + err.Error())
