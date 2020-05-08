@@ -5,19 +5,18 @@ import (
 	"time"
 )
 
+var levels = map[int]string{
+	Debug: "DEBUG",
+	Info:  "INFO",
+	Warn:  "WARN",
+	Error: "ERROR",
+}
+
 func levelLabel(level int) string {
-	switch level {
-	case Debug:
-		return "DEBUG"
-	case Info:
-		return "INFO"
-	case Warn:
-		return "WARN"
-	case Error:
-		return "ERROR"
-	default:
-		return ""
+	if level, ok := levels[level]; ok {
+		return level
 	}
+	return ""
 }
 
 func withTime(message string) string {
