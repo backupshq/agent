@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"../config"
-	"../utils"
+	"github.com/backupshq/agent/config"
+	"github.com/backupshq/agent/utils"
 	"github.com/urfave/cli"
 )
 

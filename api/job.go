@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"../auth"
+	"github.com/backupshq/agent/auth"
 )
 
 type Job struct {
@@ -43,7 +44,8 @@ func (c *ApiClient) StartJob(backupId string) Job {
 }
 
 func (c *ApiClient) FinishJob(job Job) {
-	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/finish", job.ID), nil)
+	var json = []byte(`{"status":"succeeded"}`)
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/finish", job.ID), bytes.NewBuffer(json))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
@@ -54,6 +56,10 @@ func (c *ApiClient) FinishJob(job Job) {
 		log.Fatal("Error reading response. ", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Fatal("Failed to finish job: " + resp.Status)
+	}
 
 	return
 }

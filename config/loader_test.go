@@ -3,6 +3,8 @@ package config
 import (
 	"strings"
 	"testing"
+
+	"github.com/backupshq/agent/log"
 )
 
 func TestString(t *testing.T) {
@@ -54,6 +56,34 @@ Client_Secret = 'secret'
 		}
 		if config.Auth.ClientSecret != "secret" {
 			t.Errorf("got %q want %q", config.Auth.ClientSecret, "secret")
+		}
+	})
+
+	t.Run("load log level", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+log_level = 'info'
+`)
+		if err != nil {
+			t.Errorf("expected a Config struct to be created without error, got %q", err.Error())
+			return
+		}
+		if config.LogLevel.Level != log.Info {
+			t.Errorf("got %d want %d", config.LogLevel.Level, log.Info)
+		}
+	})
+
+	t.Run("load invalid log level", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		_, err := loader.LoadString(`
+log_level = 'critical'
+`)
+		if err == nil {
+			t.Errorf("expected an error loading config")
+			return
+		}
+		if err.Error() != "TOML syntax error: Unknown log level 'critical'. Valid levels are 'debug', 'info', 'warn', and 'error'." {
+			t.Errorf("unexpected error message: %q", err.Error())
 		}
 	})
 
@@ -160,7 +190,7 @@ func TestFile(t *testing.T) {
 		config, err := loader.LoadFile("example.toml")
 
 		if err != nil {
-			t.Errorf("file should be loaded successfully")
+			t.Errorf("file should be loaded successfully, got error %q", err)
 			return
 		}
 

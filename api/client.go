@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"../auth"
-	"../config"
+	"github.com/backupshq/agent/auth"
+	"github.com/backupshq/agent/config"
 )
 
 type ApiClient struct {

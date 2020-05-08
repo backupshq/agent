@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"./command"
+	"github.com/backupshq/agent/command"
 	"github.com/urfave/cli"
 )
 

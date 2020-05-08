@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"../api"
-	"../utils"
+	"github.com/backupshq/agent/api"
+	"github.com/backupshq/agent/utils"
 )
 
 func RunBackup(client *api.ApiClient, backup api.Backup) {

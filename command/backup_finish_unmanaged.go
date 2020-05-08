@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"../api"
-	"../config"
+	"github.com/backupshq/agent/api"
+	"github.com/backupshq/agent/config"
 	"github.com/urfave/cli"
 )
 

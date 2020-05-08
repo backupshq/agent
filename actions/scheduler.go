@@ -3,8 +3,8 @@ package actions
 import (
 	"log"
 
-	"../api"
-	"github.com/robfig/cron"
+	"github.com/backupshq/agent/api"
+	"github.com/robfig/cron/v3"
 )
 
 func Schedule(client *api.ApiClient, backup api.Backup) *cron.Cron {

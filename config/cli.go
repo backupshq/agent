@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 
-	"../utils"
+	"github.com/backupshq/agent/utils"
 
 	"github.com/urfave/cli"
 )
