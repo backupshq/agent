@@ -10,15 +10,15 @@ import (
 	"github.com/backupshq/agent/auth"
 )
 
-const BACKUP_TYPE_UNMANAGED = 0
-const BACKUP_TYPE_UNSCHEDULED = 1
-const BACKUP_TYPE_SCHEDULED = 2
+const BACKUP_TYPE_UNMANAGED = "unmanaged"
+const BACKUP_TYPE_UNSCHEDULED = "unscheduled"
+const BACKUP_TYPE_SCHEDULED = "scheduled"
 
 type Backup struct {
 	ID          string
 	Name        string
 	Description string
-	Type        int
+	Type        string
 	Command     string
 	Schedule    string
 }
@@ -50,8 +50,8 @@ func (c *ApiClient) GetBackup(backupId string) Backup {
 	return backup
 }
 
-func (c *ApiClient) ListBackups(backupType int) map[string]Backup {
-	req, err := http.NewRequest("GET", "http://localhost:8000/backups/", nil)
+func (c *ApiClient) ListBackups(backupType string) map[string]Backup {
+	req, err := http.NewRequest("GET", "http://localhost:8000/backups", nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
@@ -74,7 +74,10 @@ func (c *ApiClient) ListBackups(backupType int) map[string]Backup {
 
 	allBackups := make([]Backup, 0)
 	filteredBackupMap := map[string]Backup{}
-	json.Unmarshal(body, &allBackups)
+	err = json.Unmarshal(body, &allBackups)
+	if err != nil {
+		log.Fatal("Error decoding json. ", err)
+	}
 
 	for i, _ := range allBackups {
 		if allBackups[i].Type != backupType {
