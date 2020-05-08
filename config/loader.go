@@ -22,7 +22,6 @@ type Config struct {
 
 type LogLevel struct {
 	Level int
-	Label string
 }
 
 var logLevels = map[string]int{
@@ -36,7 +35,6 @@ func (l *LogLevel) UnmarshalText(text []byte) error {
 	value := string(text)
 	if level, ok := logLevels[value]; ok {
 		l.Level = level
-		l.Label = value
 		return nil
 	}
 	return errors.New(fmt.Sprintf("Unknown log level '%s'. Valid levels are 'debug', 'info', 'warn', and 'error'.", value))
@@ -83,7 +81,6 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 	config := Config{
 		LogLevel: LogLevel{
 			Level: log.Info,
-			Label: "info",
 		},
 	}
 	metadata, err := toml.Decode(tomlText, &config)
