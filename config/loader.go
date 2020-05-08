@@ -3,11 +3,13 @@ package config
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/backupshq/agent/log"
 )
 
 type Config struct {
@@ -15,6 +17,29 @@ type Config struct {
 		ClientId     string `toml:"client_id"`
 		ClientSecret string `toml:"client_secret"`
 	}
+	LogLevel LogLevel `toml:"log_level"`
+}
+
+type LogLevel struct {
+	Level int
+	Label string
+}
+
+var logLevels = map[string]int{
+	"debug": log.Debug,
+	"info":  log.Info,
+	"warn":  log.Warn,
+	"error": log.Error,
+}
+
+func (l *LogLevel) UnmarshalText(text []byte) error {
+	value := string(text)
+	if level, ok := logLevels[value]; ok {
+		l.Level = level
+		l.Label = value
+		return nil
+	}
+	return errors.New(fmt.Sprintf("Unknown log level '%s'. Valid levels are 'debug', 'info', 'warn', and 'error'.", value))
 }
 
 type ConfigLoader struct {
