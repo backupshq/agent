@@ -43,7 +43,7 @@ func (a *Agent) update() {
 			if cron, ok := a.crons[id]; ok { // checks if there's an existing cron job for this backup
 				cron.Stop()
 			}
-			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id])
+			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id], a.logger)
 			updatedCount++
 			a.logger.Debug("Updated backup: " + backups[id].Name)
 		}

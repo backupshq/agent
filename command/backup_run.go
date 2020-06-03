@@ -1,11 +1,10 @@
 package command
 
 import (
-	"log"
-
 	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
 	"github.com/backupshq/agent/config"
+	"github.com/backupshq/agent/log"
 	"github.com/urfave/cli"
 )
 
@@ -15,14 +14,15 @@ var BackupRun = cli.Command{
 	Action: func(c *cli.Context) error {
 		config := config.LoadCli(c)
 
+		logger := log.CreateStdoutLogger(config.LogLevel.Level)
 		client := api.NewClient(config)
 
 		backup := client.GetBackup(c.Args().Get(0))
 		if backup.Type == api.BACKUP_TYPE_UNMANAGED {
-			log.Fatal("Cannot start unmanaged backup using `run` command, try `start-unmanaged`")
+			return cli.NewExitError("Cannot start an unmanaged backup using `run` command, try `start-unmanaged`.", 1)
 		}
 
-		actions.RunBackup(client, backup)
+		actions.RunBackup(client, backup, logger)
 
 		return nil
 	},
