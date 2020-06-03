@@ -99,6 +99,8 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		return nil, errors.New("Unrecognized TOML key(s) given: " + strings.Join(keysAsString, ", "))
 	}
 
+	config.ApiServer = strings.TrimRight(config.ApiServer, "/")
+
 	return &config, nil
 }
 

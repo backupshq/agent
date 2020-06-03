@@ -199,6 +199,22 @@ api_server = "https://api.example.com"
 			t.Errorf("got %q want %q", config.ApiServer, expected)
 		}
 	})
+
+	t.Run("custom api server has trailing slash trimmed", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+api_server = "https://api.example.com/"
+`)
+
+		if err != nil {
+			t.Errorf("expected a Config struct to be created without error, got %q", err.Error())
+			return
+		}
+		expected := "https://api.example.com"
+		if config.ApiServer != expected {
+			t.Errorf("got %q want %q", config.ApiServer, expected)
+		}
+	})
 }
 
 func TestFile(t *testing.T) {
