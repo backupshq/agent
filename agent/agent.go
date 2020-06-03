@@ -16,6 +16,7 @@ type Agent struct {
 	apiClient     *api.ApiClient
 	config        *config.Config
 	syncFrequency string
+	principal     api.Principal
 	backups       map[string]api.Backup
 	crons         map[string]*cron.Cron
 }
@@ -63,7 +64,8 @@ Starting BackupsHQ agent
 ========================
 `)
 	a.apiClient.Authenticate()
-	a.logger.Debug(fmt.Sprintf(`Principal: %s`, a.apiClient.PrincipalId))
+	a.principal = a.apiClient.GetPrincipal(a.apiClient.PrincipalId)
+	a.logger.Info(fmt.Sprintf(`Authenticated as principal %s "%s"`, a.principal.ID, a.principal.Name))
 
 	a.logger.Info("Sync frequency: " + a.syncFrequency)
 	a.update()
