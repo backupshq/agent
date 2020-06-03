@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/backupshq/agent/auth"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/backupshq/agent/utils"
 )
 
 func (c *ApiClient) GetAccessToken() (string, error) {
@@ -59,8 +60,8 @@ func (c *ApiClient) Authenticate() {
 	}
 
 	c.accessToken = token
-	c.accessTokenExpiry = auth.GetTokenExpiry(token)
-	c.PrincipalId = auth.GetTokenPrincipal(token)
+	c.accessTokenExpiry, _ = utils.GetAccessTokenExpiry(token)
+	c.PrincipalId, _ = utils.GetAccessTokenPrincipalId(token)
 }
 
 func (c *ApiClient) AddAuthHeader(req *http.Request) {

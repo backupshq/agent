@@ -2,10 +2,10 @@ package api
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/backupshq/agent/config"
-	"strings"
 )
 
 type credentials struct {
@@ -19,7 +19,7 @@ type ApiClient struct {
 	server            string
 	version           int
 	accessToken       string
-	accessTokenExpiry int
+	accessTokenExpiry time.Time
 	PrincipalId       string
 }
 
