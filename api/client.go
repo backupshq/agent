@@ -1,11 +1,9 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/backupshq/agent/auth"
 	"github.com/backupshq/agent/config"
 	"strings"
 )
@@ -16,10 +14,13 @@ type credentials struct {
 }
 
 type ApiClient struct {
-	client        *http.Client
-	credentials   credentials
-	tokenResponse auth.AccessTokenResponse
-	server        string
+	client            *http.Client
+	credentials       credentials
+	server            string
+	version           int
+	accessToken       string
+	accessTokenExpiry int
+	PrincipalId       string
 }
 
 func NewClient(config *config.Config) *ApiClient {
@@ -33,17 +34,9 @@ func NewClient(config *config.Config) *ApiClient {
 			clientId:     config.Auth.ClientId,
 			clientSecret: config.Auth.ClientSecret,
 		},
-		server: config.ApiServer,
+		server:  config.ApiServer,
+		version: 1,
 	}
-}
-
-func (c *ApiClient) Authenticate() {
-	tokenResponse, err := auth.GetAccessToken(c.credentials.clientId, c.credentials.clientSecret, c.server+"/auth/token")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	c.tokenResponse = tokenResponse
 }
 
 func (c *ApiClient) get(path string) (*http.Request, error) {
@@ -52,7 +45,7 @@ func (c *ApiClient) get(path string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	return req, nil
 }

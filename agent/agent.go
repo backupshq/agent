@@ -63,6 +63,7 @@ Starting BackupsHQ agent
 ========================
 `)
 	a.apiClient.Authenticate()
+	a.logger.Debug(fmt.Sprintf(`Principal: %s`, a.apiClient.PrincipalId))
 
 	a.logger.Info("Sync frequency: " + a.syncFrequency)
 	a.update()

@@ -8,8 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/backupshq/agent/auth"
 )
 
 type Job struct {
@@ -21,7 +19,7 @@ func (c *ApiClient) StartJob(backupId string) Job {
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -49,7 +47,7 @@ func (c *ApiClient) FinishJob(job Job, status string) {
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -71,7 +69,7 @@ func (c *ApiClient) SendLogs(job Job, logStr string) {
 	}
 	req.Header.Set("Content-Type", "text/plain")
 
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
