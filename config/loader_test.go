@@ -16,8 +16,9 @@ func TestString(t *testing.T) {
 			t.Errorf("expected a Config struct to be created without error, got %q", err.Error())
 			return
 		}
-		if config.Auth.ClientId != "" {
-			t.Errorf("got %q want %q", config.Auth.ClientSecret, "")
+		expected := "https://api.backupshq.com"
+		if config.ApiServer != expected {
+			t.Errorf("got %q want %q", config.ApiServer, expected)
 		}
 	})
 
@@ -180,6 +181,22 @@ client_secret = "secret"
 		}
 		if !strings.Contains(err.Error(), "Unrecognized TOML key(s) given: ") {
 			t.Errorf("error message should mention unrecognized key, got %q", err)
+		}
+	})
+
+	t.Run("custom api server", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+api_server = "https://api.example.com"
+`)
+
+		if err != nil {
+			t.Errorf("expected a Config struct to be created without error, got %q", err.Error())
+			return
+		}
+		expected := "https://api.example.com"
+		if config.ApiServer != expected {
+			t.Errorf("got %q want %q", config.ApiServer, expected)
 		}
 	})
 }

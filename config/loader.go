@@ -17,7 +17,8 @@ type Config struct {
 		ClientId     string `toml:"client_id"`
 		ClientSecret string `toml:"client_secret"`
 	}
-	LogLevel LogLevel `toml:"log_level"`
+	LogLevel  LogLevel `toml:"log_level"`
+	ApiServer string   `toml:"api_server"`
 }
 
 type LogLevel struct {
@@ -82,6 +83,7 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 		LogLevel: LogLevel{
 			Level: log.Info,
 		},
+		ApiServer: "https://api.backupshq.com",
 	}
 	metadata, err := toml.Decode(tomlText, &config)
 	if err != nil {
