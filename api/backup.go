@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
-
-	"github.com/backupshq/agent/auth"
 )
 
 const BACKUP_TYPE_UNMANAGED = "unmanaged"
@@ -24,11 +21,10 @@ type Backup struct {
 }
 
 func (c *ApiClient) GetBackup(backupId string) Backup {
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8000/backups/%s", backupId), nil)
+	req, err := c.get(fmt.Sprintf("/backups/%s", backupId))
 	if err != nil {
-		log.Fatal("Error reading request. ", err)
+		log.Fatal("Error creating request. ", err)
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -51,11 +47,10 @@ func (c *ApiClient) GetBackup(backupId string) Backup {
 }
 
 func (c *ApiClient) ListBackups(backupType string) map[string]Backup {
-	req, err := http.NewRequest("GET", "http://localhost:8000/backups", nil)
+	req, err := c.get("/backups")
 	if err != nil {
-		log.Fatal("Error reading request. ", err)
+		log.Fatal("Error creating request. ", err)
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
 
 	resp, err := c.client.Do(req)
 	if err != nil {

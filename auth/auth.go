@@ -29,7 +29,7 @@ func GetAccessToken(config *config.Config) (AccessTokenResponse, error) {
 		"scope":         {"agent"},
 	}
 
-	req, err := http.NewRequest("POST", "http://localhost:8000/auth/token", strings.NewReader(form.Encode()))
+	req, err := http.NewRequest("POST", config.ApiServer+"/auth/token", strings.NewReader(form.Encode()))
 	if err != nil {
 		return tokenResponse, errors.New("Error reading request: " + err.Error())
 	}
