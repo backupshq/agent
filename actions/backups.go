@@ -14,15 +14,17 @@ func RunBackup(client *api.ApiClient, backup api.Backup) {
 
 	log.Println("Running backup...")
 	log.Printf("Command: %s\n\n", backup.Command)
+	status := "succeeded"
 	out, err := utils.ExecuteCommand(backup.Command)
 	if err != nil {
 		// In the future we can use this block to determine status code, but for now just send the error the the API
 		log.Println(err)
 		out = err.Error()
+		status = "failed"
 	}
 	fmt.Println(out)
 
 	log.Println("Publishing results to API.")
-	client.FinishJob(job)
+	client.FinishJob(job, status)
 	client.SendLogs(job, out)
 }

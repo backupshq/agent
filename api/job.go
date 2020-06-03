@@ -43,8 +43,8 @@ func (c *ApiClient) StartJob(backupId string) Job {
 	return startedJob
 }
 
-func (c *ApiClient) FinishJob(job Job) {
-	var json = []byte(`{"status":"succeeded"}`)
+func (c *ApiClient) FinishJob(job Job, status string) {
+	var json = []byte(fmt.Sprintf(`{"status":"%s"}`, status))
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/finish", c.server, job.ID), bytes.NewBuffer(json))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
