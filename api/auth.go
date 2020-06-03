@@ -61,7 +61,6 @@ func (c *ApiClient) Authenticate() {
 
 	c.accessToken = token
 	c.accessTokenExpiry, _ = utils.GetAccessTokenExpiry(token)
-	c.PrincipalId, _ = utils.GetAccessTokenPrincipalId(token)
 }
 
 func (c *ApiClient) AddAuthHeader(req *http.Request) {

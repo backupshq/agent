@@ -20,7 +20,6 @@ type ApiClient struct {
 	version           int
 	accessToken       string
 	accessTokenExpiry time.Time
-	PrincipalId       string
 }
 
 func NewClient(config *config.Config) *ApiClient {
