@@ -57,10 +57,15 @@ func (a *Agent) update() {
 }
 
 func (a *Agent) Start() {
-	a.logger.Info("Starting BackupsHQ agent with sync frequency:" + a.syncFrequency)
+	a.logger.Info(`
+========================
+Starting BackupsHQ agent
+========================
+`)
+	a.apiClient.Authenticate()
 
+	a.logger.Info("Sync frequency: " + a.syncFrequency)
 	a.update()
-
 	cr := cron.New()
 	cr.AddFunc(a.syncFrequency, func() {
 		a.update()

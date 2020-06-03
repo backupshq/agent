@@ -10,27 +10,40 @@ import (
 	"strings"
 )
 
+type credentials struct {
+	clientId     string
+	clientSecret string
+}
+
 type ApiClient struct {
 	client        *http.Client
+	credentials   credentials
 	tokenResponse auth.AccessTokenResponse
 	server        string
 }
 
 func NewClient(config *config.Config) *ApiClient {
-	tokenResponse, err := auth.GetAccessToken(config)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	client := &http.Client{
 		Timeout: time.Second * 3,
 	}
 
 	return &ApiClient{
-		client:        client,
-		tokenResponse: tokenResponse,
-		server:        config.ApiServer,
+		client: client,
+		credentials: credentials{
+			clientId:     config.Auth.ClientId,
+			clientSecret: config.Auth.ClientSecret,
+		},
+		server: config.ApiServer,
 	}
+}
+
+func (c *ApiClient) Authenticate() {
+	tokenResponse, err := auth.GetAccessToken(c.credentials.clientId, c.credentials.clientSecret, c.server+"/auth/token")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.tokenResponse = tokenResponse
 }
 
 func (c *ApiClient) get(path string) (*http.Request, error) {

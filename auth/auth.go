@@ -1,22 +1,23 @@
 package auth
 
-import "github.com/backupshq/agent/config"
-import "encoding/json"
-import "io/ioutil"
-import "net/http"
-import "net/url"
-import "strings"
-import "errors"
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+)
 
 type AccessTokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_id"`
+	ExpiresIn   int    `json:"expires_in"`
 	Scope       string `json:"scope"`
 }
 
-func GetAccessToken(config *config.Config) (AccessTokenResponse, error) {
+func GetAccessToken(clientId string, clientSecret string, endpoint string) (AccessTokenResponse, error) {
 	client := &http.Client{
 		Timeout: time.Second * 3,
 	}
@@ -24,12 +25,12 @@ func GetAccessToken(config *config.Config) (AccessTokenResponse, error) {
 
 	form := url.Values{
 		"grant_type":    {"client_credentials"},
-		"client_id":     {config.Auth.ClientId},
-		"client_secret": {config.Auth.ClientSecret},
+		"client_id":     {clientId},
+		"client_secret": {clientSecret},
 		"scope":         {"agent"},
 	}
 
-	req, err := http.NewRequest("POST", config.ApiServer+"/auth/token", strings.NewReader(form.Encode()))
+	req, err := http.NewRequest("POST", endpoint, strings.NewReader(form.Encode()))
 	if err != nil {
 		return tokenResponse, errors.New("Error reading request: " + err.Error())
 	}
