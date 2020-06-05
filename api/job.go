@@ -8,8 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/backupshq/agent/auth"
 )
 
 type Job struct {
@@ -17,11 +15,11 @@ type Job struct {
 }
 
 func (c *ApiClient) StartJob(backupId string) Job {
-	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/backups/%s/start", backupId), nil)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/backups/%s/start", c.server, backupId), nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -43,13 +41,13 @@ func (c *ApiClient) StartJob(backupId string) Job {
 	return startedJob
 }
 
-func (c *ApiClient) FinishJob(job Job) {
-	var json = []byte(`{"status":"succeeded"}`)
-	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/finish", job.ID), bytes.NewBuffer(json))
+func (c *ApiClient) FinishJob(job Job, status string) {
+	var json = []byte(fmt.Sprintf(`{"status":"%s"}`, status))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/finish", c.server, job.ID), bytes.NewBuffer(json))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -65,13 +63,13 @@ func (c *ApiClient) FinishJob(job Job) {
 }
 
 func (c *ApiClient) SendLogs(job Job, logStr string) {
-	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8000/jobs/%s/logs", job.ID), strings.NewReader(logStr))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/logs", c.server, job.ID), strings.NewReader(logStr))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
 	req.Header.Set("Content-Type", "text/plain")
 
-	auth.AddAuthHeader(req, c.tokenResponse)
+	c.AddAuthHeader(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {

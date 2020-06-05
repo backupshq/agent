@@ -36,7 +36,7 @@ var BackupFinishUnmanaged = cli.Command{
 		client := api.NewClient(config)
 
 		job := api.Job{ID: c.Args().Get(0)}
-		client.FinishJob(job)
+		client.FinishJob(job, "succeeded")
 		log.Printf("Finished Job: %q.\n", job.ID)
 
 		return nil

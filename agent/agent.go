@@ -16,6 +16,8 @@ type Agent struct {
 	apiClient     *api.ApiClient
 	config        *config.Config
 	syncFrequency string
+	principal     api.Principal
+	account       api.Account
 	backups       map[string]api.Backup
 	crons         map[string]*cron.Cron
 }
@@ -43,7 +45,7 @@ func (a *Agent) update() {
 			if cron, ok := a.crons[id]; ok { // checks if there's an existing cron job for this backup
 				cron.Stop()
 			}
-			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id])
+			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id], a.logger)
 			updatedCount++
 			a.logger.Debug("Updated backup: " + backups[id].Name)
 		}
@@ -57,10 +59,20 @@ func (a *Agent) update() {
 }
 
 func (a *Agent) Start() {
-	a.logger.Info("Starting BackupsHQ agent with sync frequency:" + a.syncFrequency)
+	a.logger.Info(`
+========================
+Starting BackupsHQ agent
+========================
+`)
+	a.apiClient.Authenticate()
+	tokenInfo := a.apiClient.GetCurrentToken()
+	a.principal = a.apiClient.GetPrincipal(tokenInfo.PrincipalId)
+	a.logger.Info(fmt.Sprintf(`Authenticated as principal %s "%s"`, a.principal.ID, a.principal.Name))
+	a.account = a.apiClient.GetAccount(tokenInfo.AccountId)
+	a.logger.Info(fmt.Sprintf(`This agent belongs to account %s "%s"`, a.account.ID, a.account.Name))
 
+	a.logger.Info("Sync frequency: " + a.syncFrequency)
 	a.update()
-
 	cr := cron.New()
 	cr.AddFunc(a.syncFrequency, func() {
 		a.update()
