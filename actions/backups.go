@@ -21,7 +21,7 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 		out = err.Error()
 		status = "failed"
 	}
-	logger.Debug(out)
+	logger.Debug("\n" + out)
 
 	logger.Debug("Publishing job result to the API.")
 	client.FinishJob(job, status)
