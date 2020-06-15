@@ -15,7 +15,8 @@ type Job struct {
 }
 
 func (c *ApiClient) StartJob(backupId string) Job {
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/backups/%s/start", c.server, backupId), nil)
+	var requestBody = []byte(fmt.Sprintf(`{"backup_id":"%s", "start": true}`, backupId))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs", c.server), bytes.NewBuffer(requestBody))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
@@ -42,8 +43,8 @@ func (c *ApiClient) StartJob(backupId string) Job {
 }
 
 func (c *ApiClient) FinishJob(job Job, status string) {
-	var json = []byte(fmt.Sprintf(`{"status":"%s"}`, status))
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/finish", c.server, job.ID), bytes.NewBuffer(json))
+	var requestBody = []byte(fmt.Sprintf(`{"status":"%s"}`, status))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/finish", c.server, job.ID), bytes.NewBuffer(requestBody))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
