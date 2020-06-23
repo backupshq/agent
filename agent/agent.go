@@ -35,7 +35,7 @@ func Create(c *config.Config, syncFrequency string) *Agent {
 
 func (a *Agent) update() {
 	a.logger.Debug("Checking for changes to backups...")
-	backups := a.apiClient.ListBackups(api.BACKUP_TYPE_SCHEDULED)
+	backups := a.apiClient.ListBackups(api.BACKUP_TYPE_SCHEDULED, a.principal.ID)
 	a.logger.Debug(fmt.Sprintf("Scheduled backups pulled from the API: %d", len(backups)))
 
 	updatedCount := 0
