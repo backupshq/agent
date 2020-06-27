@@ -46,11 +46,15 @@ func (c *ApiClient) GetBackup(backupId string) Backup {
 	return backup
 }
 
-func (c *ApiClient) ListBackups(backupType string) map[string]Backup {
-	req, err := c.get("/backups")
+func (c *ApiClient) ListBackups(backupType string, principalId string) map[string]Backup {
+	req, err :=  c.get("/backups")
 	if err != nil {
 		log.Fatal("Error creating request. ", err)
 	}
+
+	q := req.URL.Query()
+	q.Add("assigned_to", principalId)
+	req.URL.RawQuery = q.Encode()
 
 	resp, err := c.client.Do(req)
 	if err != nil {
