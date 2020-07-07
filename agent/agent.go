@@ -3,6 +3,7 @@ package agent
 import (
 	"fmt"
 	"time"
+	"sync"
 
 	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
@@ -15,26 +16,37 @@ type Agent struct {
 	logger        *log.Logger
 	apiClient     *api.ApiClient
 	config        *config.Config
-	syncFrequency string
 	principal     api.Principal
 	account       api.Account
+	token		  api.AgentToken
 	backups       map[string]api.Backup
 	crons         map[string]*cron.Cron
+	waitGroup 	  sync.WaitGroup
 }
 
-func Create(c *config.Config, syncFrequency string) *Agent {
+func Create(c *config.Config) *Agent {
 	return &Agent{
 		logger:        log.CreateStdoutLogger(c.LogLevel.Level),
 		apiClient:     api.NewClient(c),
 		config:        c,
-		syncFrequency: syncFrequency,
 		backups:       make(map[string]api.Backup),
 		crons:         make(map[string]*cron.Cron),
 	}
 }
 
-func (a *Agent) update() {
+func (a *Agent) ping() {
 	a.logger.Debug("Checking for changes to backups...")
+	shouldFetchBackups := a.apiClient.Ping(a.token)
+
+	if shouldFetchBackups {
+		a.logger.Debug("Changes to backups found... Syncing...")
+		a.update()
+		return
+	}
+	a.logger.Debug("No changes found")
+}
+
+func (a *Agent) update() {
 	backups := a.apiClient.ListBackups(api.BACKUP_TYPE_SCHEDULED, a.principal.ID)
 	a.logger.Debug(fmt.Sprintf("Scheduled backups pulled from the API: %d", len(backups)))
 
@@ -51,11 +63,7 @@ func (a *Agent) update() {
 		}
 	}
 
-	if updatedCount > 0 {
-		a.logger.Info(fmt.Sprintf("Updated %d backup definitions", updatedCount))
-	} else {
-		a.logger.Debug("No changes detected")
-	}
+	a.logger.Info(fmt.Sprintf("Updated %d backup definitions", updatedCount))
 }
 
 func (a *Agent) Start() {
@@ -70,14 +78,17 @@ Starting BackupsHQ agent
 	a.logger.Info(fmt.Sprintf(`Authenticated as principal %s "%s"`, a.principal.ID, a.principal.Name))
 	a.account = a.apiClient.GetAccount(tokenInfo.AccountId)
 	a.logger.Info(fmt.Sprintf(`This agent belongs to account %s "%s"`, a.account.ID, a.account.Name))
+	a.token = a.apiClient.Register()
 
-	a.logger.Info("Sync frequency: " + a.syncFrequency)
 	a.update()
-	cr := cron.New()
-	cr.AddFunc(a.syncFrequency, func() {
-		a.update()
-	})
-	cr.Start()
 
-	time.Sleep(time.Minute * 100)
+	a.waitGroup.Add(1)
+	go func() {
+		for {
+			a.ping()
+			time.Sleep(time.Second * 10)
+		}
+	}()
+
+	a.waitGroup.Wait()
 }
