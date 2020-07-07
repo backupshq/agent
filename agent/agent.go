@@ -3,6 +3,7 @@ package agent
 import (
 	"fmt"
 	"time"
+	"sync"
 
 	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
@@ -20,6 +21,7 @@ type Agent struct {
 	token		  api.AgentToken
 	backups       map[string]api.Backup
 	crons         map[string]*cron.Cron
+	waitGroup 	  sync.WaitGroup
 }
 
 func Create(c *config.Config) *Agent {
@@ -78,6 +80,7 @@ Starting BackupsHQ agent
 	a.logger.Info(fmt.Sprintf(`This agent belongs to account %s "%s"`, a.account.ID, a.account.Name))
 	a.token = a.apiClient.Register()
 
+	a.waitGroup.Add(1)
 	go func() {
 		for {
 			a.ping()
@@ -85,5 +88,5 @@ Starting BackupsHQ agent
 		}
 	}()
 
-	time.Sleep(time.Minute * 100)
+	a.waitGroup.Wait()
 }
