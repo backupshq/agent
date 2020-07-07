@@ -39,6 +39,7 @@ func (a *Agent) ping() {
 	shouldFetchBackups := a.apiClient.Ping(a.token)
 
 	if shouldFetchBackups {
+		a.logger.Debug("Changes to backups found... Syncing...")
 		a.update()
 		return
 	}
@@ -46,7 +47,6 @@ func (a *Agent) ping() {
 }
 
 func (a *Agent) update() {
-	a.logger.Debug("Changes to backups found... Syncing...")
 	backups := a.apiClient.ListBackups(api.BACKUP_TYPE_SCHEDULED, a.principal.ID)
 	a.logger.Debug(fmt.Sprintf("Scheduled backups pulled from the API: %d", len(backups)))
 
@@ -79,6 +79,8 @@ Starting BackupsHQ agent
 	a.account = a.apiClient.GetAccount(tokenInfo.AccountId)
 	a.logger.Info(fmt.Sprintf(`This agent belongs to account %s "%s"`, a.account.ID, a.account.Name))
 	a.token = a.apiClient.Register()
+
+	a.update()
 
 	a.waitGroup.Add(1)
 	go func() {
