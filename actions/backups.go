@@ -6,24 +6,41 @@ import (
 	"github.com/backupshq/agent/api"
 	"github.com/backupshq/agent/log"
 	"github.com/backupshq/agent/utils"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 	job := client.StartJob(backup.ID)
 	logger.Info(fmt.Sprintf("Starting a new job with id %q.", job.ID))
-
-	logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, backup.Command))
 	status := "succeeded"
-	out, err := utils.ExecuteCommand(backup.Command)
+
+	tmpDir, err := ioutil.TempDir(os.TempDir(), "backupshq-")
 	if err != nil {
-		// In the future we can use this block to determine status code, but for now just send the error the the API
-		logger.Warn(err.Error())
-		out = err.Error()
-		status = "failed"
+		logger.Error(fmt.Sprintf("Cannot create temporary file ", err))
 	}
-	logger.Debug("\n" + out)
+	defer os.RemoveAll(tmpDir)
+	for _, definition := range backup.StepDefinitions {
+		scriptPath := filepath.Join(tmpDir, fmt.Sprintf("%d.sh", definition.SortOrder))
+		if err := ioutil.WriteFile(scriptPath, []byte(definition.Script.Script), 0700); err != nil {
+			logger.Error(fmt.Sprintf("Cannot create temporary file ", err))
+		}
+		// create job step
+
+		logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, scriptPath))
+		out, err := utils.ExecuteCommand(scriptPath)
+		if err != nil {
+			// In the future we can use this block to determine status code, but for now just send the error to the API
+			logger.Warn(err.Error())
+			out = err.Error()
+			status = "failed"
+		}
+		logger.Debug("\n" + out)
+		client.SendLogs(job, out)
+		// finish job step
+	}
 
 	logger.Debug("Publishing job result to the API.")
 	client.FinishJob(job, status)
-	client.SendLogs(job, out)
 }
