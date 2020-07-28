@@ -52,14 +52,17 @@ func (a *Agent) update() {
 
 	updatedCount := 0
 	for id := range backups {
-		if a.backups[id] != backups[id] {
-			a.backups[id] = backups[id]
+		fullBackup := a.apiClient.GetBackup(id)
+		if a.backups[id].UpdatedAt != fullBackup.UpdatedAt {
+			a.backups[id] = fullBackup
+
 			if cron, ok := a.crons[id]; ok { // checks if there's an existing cron job for this backup
 				cron.Stop()
 			}
 			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id], a.logger)
+
 			updatedCount++
-			a.logger.Debug("Updated backup: " + backups[id].Name)
+			a.logger.Debug("Updated backup: " + fullBackup.Name)
 		}
 	}
 
