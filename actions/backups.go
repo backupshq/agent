@@ -26,7 +26,7 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 		if err := ioutil.WriteFile(scriptPath, []byte(definition.Script.Script), 0700); err != nil {
 			logger.Error(fmt.Sprintf("Cannot create temporary file ", err))
 		}
-		// create job step
+		step := client.CreateStep(job.ID, definition.Name, definition.SortOrder)
 
 		logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, scriptPath))
 		out, err := utils.ExecuteCommand(scriptPath)
@@ -37,8 +37,13 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 			status = "failed"
 		}
 		logger.Debug("\n" + out)
-		client.SendLogs(job, out)
-		// finish job step
+		client.SendLogs(step, out)
+		client.FinishStep(step.ID, status)
+		logger.Debug(step.ID)
+		if status == "failed" {
+			logger.Warn(fmt.Sprintf("Job step %d failed", step.SortOrder))
+			break
+		}
 	}
 
 	logger.Debug("Publishing job result to the API.")
