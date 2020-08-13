@@ -12,12 +12,20 @@ const BACKUP_TYPE_UNSCHEDULED = "unscheduled"
 const BACKUP_TYPE_SCHEDULED = "scheduled"
 
 type Backup struct {
-	ID          string
-	Name        string
-	Description string
-	Type        string
-	Command     string
-	Schedule    string
+	ID              string
+	Name            string
+	Description     string
+	Type            string
+	Schedule        string
+	UpdatedAt       string `json:"updated_at"`
+	StepDefinitions []struct {
+		Name   string
+		Script struct {
+			Script   string
+			Checksum string
+		}
+		SortOrder int `json:"sort_order"`
+	} `json:"step_definitions"`
 }
 
 func (c *ApiClient) GetBackup(backupId string) Backup {
@@ -47,7 +55,7 @@ func (c *ApiClient) GetBackup(backupId string) Backup {
 }
 
 func (c *ApiClient) ListBackups(backupType string, principalId string) map[string]Backup {
-	req, err :=  c.get("/backups")
+	req, err := c.get("/backups")
 	if err != nil {
 		log.Fatal("Error creating request. ", err)
 	}

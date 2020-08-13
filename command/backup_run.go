@@ -16,6 +16,7 @@ var BackupRun = cli.Command{
 
 		logger := log.CreateStdoutLogger(config.LogLevel.Level)
 		client := api.NewClient(config)
+		client.Authenticate()
 
 		backup := client.GetBackup(c.Args().Get(0))
 		if backup.Type == api.BACKUP_TYPE_UNMANAGED {
