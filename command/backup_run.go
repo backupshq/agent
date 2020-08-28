@@ -19,7 +19,7 @@ var BackupRun = cli.Command{
 		client.Authenticate()
 
 		backup := client.GetBackup(c.Args().Get(0))
-		if backup.Type == api.BACKUP_TYPE_UNMANAGED {
+		if !backup.Managed {
 			return cli.NewExitError("Cannot start an unmanaged backup using `run` command, try `start-unmanaged`.", 1)
 		}
 

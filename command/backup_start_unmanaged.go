@@ -33,8 +33,8 @@ To run any other type of backup, see backupshq job run --help.
 
 		backupID := c.Args().Get(0)
 		backup := client.GetBackup(backupID)
-		if backup.Type != api.BACKUP_TYPE_UNMANAGED {
-			log.Fatal("Cannot start managed backup using start-unmanaged command")
+		if backup.Managed {
+			log.Fatal("Cannot start a managed backup using start-unmanaged command")
 		}
 
 		job := client.StartJob(backupID)

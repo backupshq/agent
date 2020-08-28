@@ -7,15 +7,11 @@ import (
 	"log"
 )
 
-const BACKUP_TYPE_UNMANAGED = "unmanaged"
-const BACKUP_TYPE_UNSCHEDULED = "unscheduled"
-const BACKUP_TYPE_SCHEDULED = "scheduled"
-
 type Backup struct {
 	ID              string
 	Name            string
 	Description     string
-	Type            string
+	Managed         bool
 	Schedule        string
 	UpdatedAt       string `json:"updated_at"`
 	StepDefinitions []struct {
@@ -54,7 +50,7 @@ func (c *ApiClient) GetBackup(backupId string) Backup {
 	return backup
 }
 
-func (c *ApiClient) ListBackups(backupType string, principalId string) map[string]Backup {
+func (c *ApiClient) ListBackups(principalId string) map[string]Backup {
 	req, err := c.get("/backups")
 	if err != nil {
 		log.Fatal("Error creating request. ", err)
@@ -87,7 +83,7 @@ func (c *ApiClient) ListBackups(backupType string, principalId string) map[strin
 	}
 
 	for i, _ := range allBackups {
-		if allBackups[i].Type != backupType {
+		if !allBackups[i].Managed {
 			continue
 		}
 		filteredBackupMap[allBackups[i].ID] = allBackups[i]
