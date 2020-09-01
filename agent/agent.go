@@ -2,8 +2,8 @@ package agent
 
 import (
 	"fmt"
-	"time"
 	"sync"
+	"time"
 
 	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
@@ -13,24 +13,24 @@ import (
 )
 
 type Agent struct {
-	logger        *log.Logger
-	apiClient     *api.ApiClient
-	config        *config.Config
-	principal     api.Principal
-	account       api.Account
-	token		  api.AgentToken
-	backups       map[string]api.Backup
-	crons         map[string]*cron.Cron
-	waitGroup 	  sync.WaitGroup
+	logger    *log.Logger
+	apiClient *api.ApiClient
+	config    *config.Config
+	principal api.Principal
+	account   api.Account
+	token     api.AgentToken
+	backups   map[string]api.Backup
+	crons     map[string]*cron.Cron
+	waitGroup sync.WaitGroup
 }
 
 func Create(c *config.Config) *Agent {
 	return &Agent{
-		logger:        log.CreateStdoutLogger(c.LogLevel.Level),
-		apiClient:     api.NewClient(c),
-		config:        c,
-		backups:       make(map[string]api.Backup),
-		crons:         make(map[string]*cron.Cron),
+		logger:    log.CreateStdoutLogger(c.LogLevel.Level),
+		apiClient: api.NewClient(c),
+		config:    c,
+		backups:   make(map[string]api.Backup),
+		crons:     make(map[string]*cron.Cron),
 	}
 }
 
@@ -47,7 +47,7 @@ func (a *Agent) ping() {
 }
 
 func (a *Agent) update() {
-	backups := a.apiClient.ListBackups(api.BACKUP_TYPE_SCHEDULED, a.principal.ID)
+	backups := a.apiClient.ListBackups(a.principal.ID)
 	a.logger.Debug(fmt.Sprintf("Scheduled backups pulled from the API: %d", len(backups)))
 
 	updatedCount := 0
