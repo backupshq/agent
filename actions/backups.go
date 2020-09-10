@@ -33,7 +33,6 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 		if err != nil {
 			// In the future we can use this block to determine status code, but for now just send the error to the API
 			logger.Warn(err.Error())
-			out = err.Error()
 			status = "failed"
 		}
 		logger.Debug("\n" + out)
