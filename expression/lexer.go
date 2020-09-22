@@ -7,37 +7,9 @@ import (
 	"strings"
 )
 
-type Token struct {
-	TokenType string
-	Position  int
-	Value     string
-}
-
-// Anything outside of %
-const TypeLiteral = "literal"
-
-// %
-const TypeExpressionBoundary = "expression_boundary"
-
-// function or variable
-const TypeIdentifier = "identifier"
-
-// ( or )
-const TypeBracket = "bracket"
-
-// ,
-const TypeComma = "comma"
-
-// 'string'
-const TypeString = "string"
-
-type TokenList struct {
-	Tokens []Token
-}
-
 type Lexer struct{}
 
-func (l *Lexer) Tokenize(input string) (TokenList, error) {
+func (l *Lexer) Tokenize(input string) (*TokenList, error) {
 	cursor := 0
 	var tokens []Token
 	end := len([]rune(input))
@@ -112,5 +84,5 @@ func (l *Lexer) Tokenize(input string) (TokenList, error) {
 		break
 	}
 
-	return TokenList{tokens}, err
+	return CreateTokenList(tokens), err
 }
