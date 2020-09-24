@@ -1,5 +1,10 @@
 package expression
 
+import (
+	"errors"
+	"fmt"
+)
+
 type Node interface {
 	Evaluate(context Context) (string, error)
 }
@@ -37,4 +42,28 @@ type VariableNode struct {
 
 func (n *VariableNode) Evaluate(context Context) (string, error) {
 	return context.getVariable(n.name)
+}
+
+type FunctionNode struct {
+	name string
+	args []Node
+}
+
+func (n *FunctionNode) Evaluate(context Context) (string, error) {
+	function, err := context.getFunction(n.name)
+	if err != nil {
+		return "", err
+	}
+
+	var resolvedArgs []string
+	for i, arg := range n.args {
+		resolvedArg, err := arg.Evaluate(context)
+		if err != nil {
+			return "", errors.New(fmt.Sprintf("Error at argument %d: %s", i, err.Error()))
+		}
+
+		resolvedArgs = append(resolvedArgs, resolvedArg)
+	}
+
+	return function(resolvedArgs...), nil
 }

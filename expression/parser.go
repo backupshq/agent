@@ -52,8 +52,36 @@ func (p *Parser) parseExpression(tokens *TokenList) (Node, error) {
 		identifierName := tokens.current.Value
 		tokens.next()
 
+		if tokens.current.is(TypeBracket, "(") {
+			tokens.next()
+			args, err := p.parseArguments(tokens)
+			if err != nil {
+				return nil, err
+			}
+			tokens.expect(TypeBracket, ")")
+
+			return &FunctionNode{identifierName, args}, nil
+		}
+
 		return &VariableNode{identifierName}, nil
 	}
 
 	return nil, errors.New(fmt.Sprintf("At position %d: unexpected token '%s'", tokens.current.Position, tokens.current.Value))
+}
+
+func (p *Parser) parseArguments(tokens *TokenList) ([]Node, error) {
+	var args []Node
+
+	for !tokens.current.is(TypeBracket, ")") {
+		parsedExpression, err := p.parseExpression(tokens)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, parsedExpression)
+		if !tokens.current.is(TypeBracket, "") {
+			tokens.expect(TypeComma, "")
+		}
+	}
+
+	return args, nil
 }

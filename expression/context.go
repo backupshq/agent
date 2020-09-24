@@ -7,6 +7,7 @@ import (
 
 type Context struct {
 	variables map[string]string
+	functions map[string]func(args ...string) string
 }
 
 func (c *Context) getVariable(name string) (string, error) {
@@ -15,4 +16,16 @@ func (c *Context) getVariable(name string) (string, error) {
 	}
 
 	return "", errors.New(fmt.Sprintf("Unknown variable '%s'", name))
+}
+
+func (c *Context) getFunction(name string) (func(args ...string) string, error) {
+	if function, ok := c.functions[name]; ok {
+		return function, nil
+	}
+
+	defaultFunc := func(args ...string) string {
+		return ""
+	}
+
+	return defaultFunc, errors.New(fmt.Sprintf("Unknown function '%s'", name))
 }
