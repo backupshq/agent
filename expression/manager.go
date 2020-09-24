@@ -5,14 +5,18 @@ type ExpressionManager struct {
 	parser Parser
 }
 
-func (e *ExpressionManager) Evaluate(input string, context Context) (string, error) {
+func (e *ExpressionManager) Parse(input string) (Node, error) {
 	tokens, err := e.lexer.Tokenize(input)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	node, err := e.parser.Parse(tokens)
+	return e.parser.Parse(tokens)
+}
+
+func (e *ExpressionManager) Evaluate(input string, context Context) (string, error) {
+	node, err := e.Parse(input)
 
 	if err != nil {
 		return "", err

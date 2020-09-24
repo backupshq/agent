@@ -141,3 +141,34 @@ func TestEvaluateWithFunctions(t *testing.T) {
 		})
 	}
 }
+
+func TestBadSyntax(t *testing.T) {
+	cases := []string{
+		"%£^&£$^&$^£(f('test', 'test'))%",
+		"f('test')%",
+		"%f('test')",
+		"%f(%)%",
+		"%‮f('test')%",
+		"%%%%%",
+		"%f('test'))%",
+		"%f(('test')%",
+		"%h('test',, 'test')%",
+		"%h('test', ''test')%",
+		"%h('test', \"test')%",
+		"%h('test', test')%",
+		"%test'%",
+		"%one'%",
+	}
+
+	for _, input := range cases {
+		t.Run("Parse", func(t *testing.T) {
+			manager := CreateExpressionManager()
+
+			_, err := manager.Parse(input)
+			if err == nil {
+				t.Errorf("expected error, got nil")
+				return
+			}
+		})
+	}
+}
