@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 type Lexer struct{}
@@ -12,7 +13,7 @@ type Lexer struct{}
 func (l *Lexer) Tokenize(input string) (*TokenList, error) {
 	cursor := 0
 	var tokens []Token
-	end := len([]rune(input))
+	end := len([]byte(input))
 	inExpression := false
 	var err error
 	var match []int
@@ -80,7 +81,8 @@ func (l *Lexer) Tokenize(input string) (*TokenList, error) {
 			continue
 		}
 
-		err = errors.New(fmt.Sprintf("At position %d: unexpected input %q", cursor, input[cursor]))
+		currentRune, _ := utf8.DecodeRuneInString(input[cursor:])
+		err = errors.New(fmt.Sprintf("At position %d: unexpected input %s", cursor, string(currentRune)))
 		break
 	}
 

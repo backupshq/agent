@@ -11,6 +11,7 @@ import (
 func TestEvaluateSimple(t *testing.T) {
 	cases := map[string]string{
 		"foo":               "foo",
+		"🔔🧭":                "🔔🧭",
 		"%'test'%":          "test",
 		"one %'two'% three": "one two three",
 	}
@@ -71,6 +72,7 @@ func TestEvaluateWithFunctions(t *testing.T) {
 		"%g(two)%":                  "4",
 		"%h(one, two, f('three'))%": "12guerr",
 		"%h(h,h,h)%":                "hhh",
+		"%h('🐈', '🥨', f('⛄'))%":     "🐈🥨⛄",
 	}
 
 	for input, expected := range cases {
@@ -158,6 +160,7 @@ func TestBadSyntax(t *testing.T) {
 		"%h('test', test')%",
 		"%test'%",
 		"%one'%",
+		"%⛄ne%",
 	}
 
 	for _, input := range cases {
