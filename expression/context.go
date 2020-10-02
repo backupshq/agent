@@ -6,12 +6,12 @@ import (
 )
 
 type Context struct {
-	variables map[string]string
-	functions map[string]func(args ...string) string
+	Variables map[string]string
+	Functions map[string]func(args ...string) string
 }
 
 func (c *Context) getVariable(name string) (string, error) {
-	if value, ok := c.variables[name]; ok {
+	if value, ok := c.Variables[name]; ok {
 		return value, nil
 	}
 
@@ -19,7 +19,7 @@ func (c *Context) getVariable(name string) (string, error) {
 }
 
 func (c *Context) getFunction(name string) (func(args ...string) string, error) {
-	if function, ok := c.functions[name]; ok {
+	if function, ok := c.Functions[name]; ok {
 		return function, nil
 	}
 
