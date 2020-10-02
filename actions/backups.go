@@ -61,7 +61,9 @@ func evaluateExpressions(client *api.ApiClient, definition api.StepDefinition, l
 		map[string]string{},
 		map[string]func(args ...string) string{
 			"server_secret": func(args ...string) string {
-				return "SECRET"
+				secret := client.GetSecretByName(args[0])
+
+				return secret.Value
 			},
 		},
 	}
