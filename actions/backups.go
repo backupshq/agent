@@ -29,7 +29,7 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 		step := client.CreateStep(job.ID, definition.Name, definition.SortOrder)
 
 		logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, scriptPath))
-		out, err := utils.ExecuteCommand(scriptPath)
+		out, err := utils.ExecuteCommand(scriptPath, []string{})
 		if err != nil {
 			// In the future we can use this block to determine status code, but for now just send the error to the API
 			logger.Warn(err.Error())
