@@ -19,13 +19,13 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "backupshq-")
 	if err != nil {
-		logger.Error(fmt.Sprintf("Cannot create temporary file ", err))
+		logger.Error(fmt.Sprintf("Cannot create temporary file: %s", err))
 	}
 	defer os.RemoveAll(tmpDir)
 	for _, definition := range backup.StepDefinitions {
 		scriptPath := filepath.Join(tmpDir, fmt.Sprintf("%d.sh", definition.SortOrder))
 		if err := ioutil.WriteFile(scriptPath, []byte(definition.Script.Script), 0700); err != nil {
-			logger.Error(fmt.Sprintf("Cannot create temporary file ", err))
+			logger.Error(fmt.Sprintf("Cannot create temporary file: %s", err))
 		}
 		step := client.CreateStep(job.ID, definition.Name, definition.SortOrder)
 
