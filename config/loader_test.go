@@ -41,6 +41,34 @@ client_secret = 'secret'
 		}
 	})
 
+	t.Run("load config with secrets", func(t *testing.T) {
+		loader := NewConfigLoader(map[string]string{})
+		config, err := loader.LoadString(`
+[secrets]
+foo = "bar"
+db_password_1 = "abc123"
+DB_PASSWORD_2 = "def456"
+`)
+		if err != nil {
+			t.Errorf("expected a Config struct to be created without error, got %q", err.Error())
+			return
+		}
+
+		for k, v := range map[string]string{
+			"FOO":           "bar",
+			"DB_PASSWORD_1": "abc123",
+			"DB_PASSWORD_2": "def456",
+		} {
+			val, ok := config.Secrets[k]
+			if !ok {
+				t.Errorf("got %v want %v", ok, true)
+			}
+			if val != v {
+				t.Errorf("got %q want %q", val, v)
+			}
+		}
+	})
+
 	t.Run("load simple config with odd casing", func(t *testing.T) {
 		loader := NewConfigLoader(map[string]string{})
 		config, err := loader.LoadString(`
@@ -105,11 +133,14 @@ this doesn't work
 	})
 
 	t.Run("replace env key with val", func(t *testing.T) {
-		loader := NewConfigLoader(map[string]string{"TESTVAR": "test"})
+		loader := NewConfigLoader(map[string]string{"TESTVAR": "test", "DB_3": "db_password"})
 		config, err := loader.LoadString(`
 [auth]
 client_id = '{{ env "TESTVAR"}}'
 client_secret = 'secret'
+
+[secrets]
+DB_PASSWORD_3 = '{{ env "DB_3" }}'
 `)
 		if err != nil {
 			t.Errorf("expected a Config struct to be created without error, got %q", err.Error())
@@ -117,6 +148,11 @@ client_secret = 'secret'
 		}
 		if config.Auth.ClientId != "test" {
 			t.Errorf("got %q want %q", config.Auth.ClientId, "test")
+		}
+
+		val, _ := config.Secrets["DB_PASSWORD_3"]
+		if val != "db_password" {
+			t.Errorf("got %q want %q", val, "db_password")
 		}
 	})
 
