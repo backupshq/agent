@@ -85,7 +85,7 @@ func (c *ApiClient) ListBackups(principalId string) map[string]Backup {
 		log.Fatal("Error decoding json. ", err)
 	}
 
-	for i, _ := range allBackups {
+	for i := range allBackups {
 		if !allBackups[i].Managed {
 			continue
 		}
