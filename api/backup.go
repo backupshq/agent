@@ -7,21 +7,24 @@ import (
 	"log"
 )
 
+type StepDefinition struct {
+	Name   string
+	Script struct {
+		Script   string
+		Checksum string
+	}
+	SortOrder   int `json:"sort_order"`
+	Expressions map[string]string
+}
+
 type Backup struct {
 	ID              string
 	Name            string
 	Description     string
 	Managed         bool
 	Schedule        string
-	UpdatedAt       string `json:"updated_at"`
-	StepDefinitions []struct {
-		Name   string
-		Script struct {
-			Script   string
-			Checksum string
-		}
-		SortOrder int `json:"sort_order"`
-	} `json:"step_definitions"`
+	UpdatedAt       string           `json:"updated_at"`
+	StepDefinitions []StepDefinition `json:"step_definitions"`
 }
 
 func (c *ApiClient) GetBackup(backupId string) Backup {
