@@ -7,91 +7,91 @@ import (
 
 func TestTokenize(t *testing.T) {
 	cases := map[string][]Token{
-		"test": []Token{
-			Token{TypeLiteral, 0, "test"},
+		"test": {
+			{TypeLiteral, 0, "test"},
 		},
 
-		"test %'foo'%": []Token{
-			Token{TypeLiteral, 0, "test "},
-			Token{TypeExpressionBoundary, 5, "%"},
-			Token{TypeString, 6, "foo"},
-			Token{TypeExpressionBoundary, 11, "%"},
+		"test %'foo'%": {
+			{TypeLiteral, 0, "test "},
+			{TypeExpressionBoundary, 5, "%"},
+			{TypeString, 6, "foo"},
+			{TypeExpressionBoundary, 11, "%"},
 		},
 
-		"test %   'foo'%": []Token{
-			Token{TypeLiteral, 0, "test "},
-			Token{TypeExpressionBoundary, 5, "%"},
-			Token{TypeString, 9, "foo"},
-			Token{TypeExpressionBoundary, 14, "%"},
+		"test %   'foo'%": {
+			{TypeLiteral, 0, "test "},
+			{TypeExpressionBoundary, 5, "%"},
+			{TypeString, 9, "foo"},
+			{TypeExpressionBoundary, 14, "%"},
 		},
 
-		"test %bar%": []Token{
-			Token{TypeLiteral, 0, "test "},
-			Token{TypeExpressionBoundary, 5, "%"},
-			Token{TypeIdentifier, 6, "bar"},
-			Token{TypeExpressionBoundary, 9, "%"},
+		"test %bar%": {
+			{TypeLiteral, 0, "test "},
+			{TypeExpressionBoundary, 5, "%"},
+			{TypeIdentifier, 6, "bar"},
+			{TypeExpressionBoundary, 9, "%"},
 		},
 
-		"test %run()%": []Token{
-			Token{TypeLiteral, 0, "test "},
-			Token{TypeExpressionBoundary, 5, "%"},
-			Token{TypeIdentifier, 6, "run"},
-			Token{TypeBracket, 9, "("},
-			Token{TypeBracket, 10, ")"},
-			Token{TypeExpressionBoundary, 11, "%"},
+		"test %run()%": {
+			{TypeLiteral, 0, "test "},
+			{TypeExpressionBoundary, 5, "%"},
+			{TypeIdentifier, 6, "run"},
+			{TypeBracket, 9, "("},
+			{TypeBracket, 10, ")"},
+			{TypeExpressionBoundary, 11, "%"},
 		},
 
-		"test %run('foo')%": []Token{
-			Token{TypeLiteral, 0, "test "},
-			Token{TypeExpressionBoundary, 5, "%"},
-			Token{TypeIdentifier, 6, "run"},
-			Token{TypeBracket, 9, "("},
-			Token{TypeString, 10, "foo"},
-			Token{TypeBracket, 15, ")"},
-			Token{TypeExpressionBoundary, 16, "%"},
+		"test %run('foo')%": {
+			{TypeLiteral, 0, "test "},
+			{TypeExpressionBoundary, 5, "%"},
+			{TypeIdentifier, 6, "run"},
+			{TypeBracket, 9, "("},
+			{TypeString, 10, "foo"},
+			{TypeBracket, 15, ")"},
+			{TypeExpressionBoundary, 16, "%"},
 		},
 
-		"test %run( bar )%": []Token{
-			Token{TypeLiteral, 0, "test "},
-			Token{TypeExpressionBoundary, 5, "%"},
-			Token{TypeIdentifier, 6, "run"},
-			Token{TypeBracket, 9, "("},
-			Token{TypeIdentifier, 11, "bar"},
-			Token{TypeBracket, 15, ")"},
-			Token{TypeExpressionBoundary, 16, "%"},
+		"test %run( bar )%": {
+			{TypeLiteral, 0, "test "},
+			{TypeExpressionBoundary, 5, "%"},
+			{TypeIdentifier, 6, "run"},
+			{TypeBracket, 9, "("},
+			{TypeIdentifier, 11, "bar"},
+			{TypeBracket, 15, ")"},
+			{TypeExpressionBoundary, 16, "%"},
 		},
 
-		"((([]as398&£JKDM": []Token{
-			Token{TypeLiteral, 0, "((([]as398&£JKDM"},
+		"((([]as398&£JKDM": {
+			{TypeLiteral, 0, "((([]as398&£JKDM"},
 		},
 
-		"%%": []Token{
-			Token{TypeLiteral, 0, "%"},
+		"%%": {
+			{TypeLiteral, 0, "%"},
 		},
 
-		"100%%": []Token{
-			Token{TypeLiteral, 0, "100%"},
+		"100%%": {
+			{TypeLiteral, 0, "100%"},
 		},
 
-		"100%% %'foo'% %% ": []Token{
-			Token{TypeLiteral, 0, "100% "},
-			Token{TypeExpressionBoundary, 6, "%"},
-			Token{TypeString, 7, "foo"},
-			Token{TypeExpressionBoundary, 12, "%"},
-			Token{TypeLiteral, 13, " % "},
+		"100%% %'foo'% %% ": {
+			{TypeLiteral, 0, "100% "},
+			{TypeExpressionBoundary, 6, "%"},
+			{TypeString, 7, "foo"},
+			{TypeExpressionBoundary, 12, "%"},
+			{TypeLiteral, 13, " % "},
 		},
 
-		"%f(a, b, 'c')%": []Token{
-			Token{TypeExpressionBoundary, 0, "%"},
-			Token{TypeIdentifier, 1, "f"},
-			Token{TypeBracket, 2, "("},
-			Token{TypeIdentifier, 3, "a"},
-			Token{TypeComma, 4, ","},
-			Token{TypeIdentifier, 6, "b"},
-			Token{TypeComma, 7, ","},
-			Token{TypeString, 9, "c"},
-			Token{TypeBracket, 12, ")"},
-			Token{TypeExpressionBoundary, 13, "%"},
+		"%f(a, b, 'c')%": {
+			{TypeExpressionBoundary, 0, "%"},
+			{TypeIdentifier, 1, "f"},
+			{TypeBracket, 2, "("},
+			{TypeIdentifier, 3, "a"},
+			{TypeComma, 4, ","},
+			{TypeIdentifier, 6, "b"},
+			{TypeComma, 7, ","},
+			{TypeString, 9, "c"},
+			{TypeBracket, 12, ")"},
+			{TypeExpressionBoundary, 13, "%"},
 		},
 	}
 

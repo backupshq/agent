@@ -1,0 +1,9 @@
+steps:
+  - label: 'Lint'
+    commands:
+      - docker run --rm -v "$PWD":/usr/src/backupshq -w /usr/src/backupshq golang:1.15 gofmt -d -s ./.. | diff -u /dev/null -
+      - docker run --rm -v "$PWD":/usr/src/backupshq -w /usr/src/backupshq golang:1.15 go build -v -o backupshq
+
+  - label: 'Test'
+    commands:
+      - docker run --rm -v "$PWD":/usr/src/backupshq -w /usr/src/backupshq golang:1.15 go test ./...
