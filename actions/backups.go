@@ -2,8 +2,10 @@ package actions
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/backupshq/agent/api"
+	"github.com/backupshq/agent/config"
 	"github.com/backupshq/agent/expression"
 	"github.com/backupshq/agent/log"
 	"github.com/backupshq/agent/utils"
@@ -12,7 +14,7 @@ import (
 	"path/filepath"
 )
 
-func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
+func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, config *config.Config) {
 	job := client.StartJob(backup.ID)
 	logger.Info(fmt.Sprintf("Starting a new job with id %q.", job.ID))
 	status := "succeeded"
@@ -29,7 +31,7 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 		}
 		step := client.CreateStep(job.ID, definition.Name, definition.SortOrder)
 
-		env, err := evaluateExpressions(client, definition, logger)
+		env, err := evaluateExpressions(client, definition, logger, config)
 		var out string
 		if err == nil {
 			logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, scriptPath))
@@ -54,7 +56,7 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger) {
 	client.FinishJob(job, status)
 }
 
-func evaluateExpressions(client *api.ApiClient, definition api.StepDefinition, logger *log.Logger) ([]string, error) {
+func evaluateExpressions(client *api.ApiClient, definition api.StepDefinition, logger *log.Logger, config *config.Config) ([]string, error) {
 	var env []string
 	expressionManager := expression.CreateExpressionManager()
 	context := expression.Context{
@@ -64,6 +66,14 @@ func evaluateExpressions(client *api.ApiClient, definition api.StepDefinition, l
 				secret := client.GetSecretByName(args[0])
 
 				return secret.Value
+			},
+			"client_secret": func(args ...string) string {
+				fmt.Printf("%v", config.Secrets)
+				val, ok := config.Secrets[strings.ToUpper(args[0])]
+				if !ok {
+					return "not found"
+				}
+				return val
 			},
 		},
 	}

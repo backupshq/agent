@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 )
@@ -14,7 +13,7 @@ type Account struct {
 }
 
 func (c *ApiClient) GetAccount(id string) Account {
-	req, err := c.get(fmt.Sprintf("/accounts/%s", id))
+	req, err := c.get("/account")
 	if err != nil {
 		log.Fatal("Error creating request. ", err)
 	}

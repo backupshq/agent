@@ -17,8 +17,9 @@ type Config struct {
 		ClientId     string `toml:"client_id"`
 		ClientSecret string `toml:"client_secret"`
 	}
-	LogLevel  LogLevel `toml:"log_level"`
-	ApiServer string   `toml:"api_server"`
+	LogLevel  LogLevel          `toml:"log_level"`
+	ApiServer string            `toml:"api_server"`
+	Secrets   map[string]string `toml:"secrets"`
 }
 
 type LogLevel struct {
@@ -100,6 +101,11 @@ func (l *ConfigLoader) LoadString(tomlText string) (*Config, error) {
 	}
 
 	config.ApiServer = strings.TrimRight(config.ApiServer, "/")
+
+	for k, v := range config.Secrets {
+		delete(config.Secrets, k)
+		config.Secrets[strings.ToUpper(k)] = v
+	}
 
 	return &config, nil
 }

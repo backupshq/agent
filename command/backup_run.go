@@ -23,7 +23,7 @@ var BackupRun = cli.Command{
 			return cli.NewExitError("Cannot start an unmanaged backup using `run` command, try `start-unmanaged`.", 1)
 		}
 
-		actions.RunBackup(client, backup, logger)
+		actions.RunBackup(client, backup, logger, config)
 
 		return nil
 	},
