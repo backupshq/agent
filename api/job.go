@@ -11,7 +11,10 @@ import (
 )
 
 type Job struct {
-	ID string
+	ID         string
+	BackupID   string `json:"backup_id"`
+	BackupName string `json:"backup_name"`
+	JobNumber  int    `json:"job_number"`
 }
 
 type JobStep struct {

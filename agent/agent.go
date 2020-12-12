@@ -36,9 +36,9 @@ func Create(c *config.Config) *Agent {
 
 func (a *Agent) ping() {
 	a.logger.Debug("Checking for changes to backups...")
-	shouldFetchBackups := a.apiClient.Ping(a.token)
+	pingResponse := a.apiClient.Ping(a.token)
 
-	if shouldFetchBackups {
+	if pingResponse.UpdatedBackupCount > 0 {
 		a.logger.Debug("Changes to backups found... Syncing...")
 		a.update()
 		return
