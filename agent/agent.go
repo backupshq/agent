@@ -13,30 +13,37 @@ import (
 )
 
 type Agent struct {
-	logger    *log.Logger
-	apiClient *api.ApiClient
-	config    *config.Config
-	principal api.Principal
-	account   api.Account
-	token     api.AgentToken
-	backups   map[string]api.Backup
-	crons     map[string]*cron.Cron
-	waitGroup sync.WaitGroup
+	logger      *log.Logger
+	apiClient   *api.ApiClient
+	config      *config.Config
+	principal   api.Principal
+	account     api.Account
+	token       api.AgentToken
+	backups     map[string]api.Backup
+	crons       map[string]*cron.Cron
+	workerQueue chan int
 }
 
 func Create(c *config.Config) *Agent {
 	return &Agent{
-		logger:    log.CreateStdoutLogger(c.LogLevel.Level),
-		apiClient: api.NewClient(c),
-		config:    c,
-		backups:   make(map[string]api.Backup),
-		crons:     make(map[string]*cron.Cron),
+		logger:      log.CreateStdoutLogger(c.LogLevel.Level),
+		apiClient:   api.NewClient(c),
+		config:      c,
+		backups:     make(map[string]api.Backup),
+		crons:       make(map[string]*cron.Cron),
+		workerQueue: make(chan int, 10),
 	}
 }
 
 func (a *Agent) ping() {
 	a.logger.Debug("Checking for changes to backups...")
 	pingResponse := a.apiClient.Ping(a.token)
+
+	if len(pingResponse.AssignedPendingJobs) > 0 {
+		for i, _ := range pingResponse.AssignedPendingJobs {
+			a.workerQueue <- i
+		}
+	}
 
 	if pingResponse.UpdatedBackupCount > 0 {
 		a.logger.Debug("Changes to backups found... Syncing...")
@@ -85,7 +92,8 @@ Starting BackupsHQ agent
 
 	a.update()
 
-	a.waitGroup.Add(1)
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		for {
 			a.ping()
@@ -93,5 +101,15 @@ Starting BackupsHQ agent
 		}
 	}()
 
-	a.waitGroup.Wait()
+	for i := 1; i < 5; i++ {
+		worker := CreateWorker(
+			i,
+			a.logger,
+			a.apiClient,
+		)
+
+		go worker.work(a.workerQueue)
+	}
+
+	wg.Wait()
 }
