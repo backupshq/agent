@@ -47,8 +47,8 @@ func (c *ApiClient) Register() AgentToken {
 }
 
 type PingResponse struct {
-	UpdatedBackupCount  int   `json:"updated_backup_count"`
-	AssignedPendingJobs []Job `json:"assigned_pending_jobs"`
+	UpdatedBackupCount int   `json:"updated_backup_count"`
+	AssignedJobs       []Job `json:"assigned_jobs"`
 }
 
 func (c *ApiClient) Ping(token AgentToken) PingResponse {

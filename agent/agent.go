@@ -9,29 +9,32 @@ import (
 	"github.com/backupshq/agent/api"
 	"github.com/backupshq/agent/config"
 	"github.com/backupshq/agent/log"
+	"github.com/backupshq/agent/utils"
 	"github.com/robfig/cron/v3"
 )
 
 type Agent struct {
-	logger      *log.Logger
-	apiClient   *api.ApiClient
-	config      *config.Config
-	principal   api.Principal
-	account     api.Account
-	token       api.AgentToken
-	backups     map[string]api.Backup
-	crons       map[string]*cron.Cron
-	workerQueue chan api.Job
+	logger            *log.Logger
+	apiClient         *api.ApiClient
+	config            *config.Config
+	principal         api.Principal
+	account           api.Account
+	token             api.AgentToken
+	backups           map[string]api.Backup
+	crons             map[string]*cron.Cron
+	workerQueue       chan api.Job
+	jobCancelChannels *utils.SignalMap
 }
 
 func Create(c *config.Config) *Agent {
 	return &Agent{
-		logger:      log.CreateStdoutLogger(c.LogLevel.Level),
-		apiClient:   api.NewClient(c),
-		config:      c,
-		backups:     make(map[string]api.Backup),
-		crons:       make(map[string]*cron.Cron),
-		workerQueue: make(chan api.Job, 10),
+		logger:            log.CreateStdoutLogger(c.LogLevel.Level),
+		apiClient:         api.NewClient(c),
+		config:            c,
+		backups:           make(map[string]api.Backup),
+		crons:             make(map[string]*cron.Cron),
+		workerQueue:       make(chan api.Job, 10),
+		jobCancelChannels: &utils.SignalMap{},
 	}
 }
 
@@ -39,9 +42,16 @@ func (a *Agent) ping() {
 	a.logger.Debug("Checking for changes to backups...")
 	pingResponse := a.apiClient.Ping(a.token)
 
-	if len(pingResponse.AssignedPendingJobs) > 0 {
-		for _, job := range pingResponse.AssignedPendingJobs {
-			a.workerQueue <- job
+	if len(pingResponse.AssignedJobs) > 0 {
+		for _, job := range pingResponse.AssignedJobs {
+			if job.Status == "pending" {
+				a.workerQueue <- job
+			}
+			if job.Status == "cancelled" {
+				if cancel, ok := a.jobCancelChannels.Load(job.ID); ok {
+					cancel <- true
+				}
+			}
 		}
 	}
 

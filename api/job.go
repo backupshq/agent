@@ -15,6 +15,7 @@ type Job struct {
 	BackupID   string `json:"backup_id"`
 	BackupName string `json:"backup_name"`
 	JobNumber  int    `json:"job_number"`
+	Status     string
 }
 
 type JobStep struct {
