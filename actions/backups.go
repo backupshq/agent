@@ -14,9 +14,15 @@ import (
 	"path/filepath"
 )
 
+// Create a new job, mark it as started, and run it.
 func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, config *config.Config) {
 	job := client.StartJob(backup.ID)
 	logger.Info(fmt.Sprintf("Starting a new job with id %q.", job.ID))
+	RunJob(client, backup, job, logger, config)
+}
+
+// Run a job that has already been marked as started.
+func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.Logger, config *config.Config) {
 	status := "succeeded"
 
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "backupshq-")
