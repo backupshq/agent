@@ -10,7 +10,8 @@ import (
 func Schedule(client *api.ApiClient, backup api.Backup, logger *log.Logger, config *config.Config) *cron.Cron {
 	logger.Info("Schedule " + backup.Name + " for " + backup.Schedule)
 	c := cron.New()
-	c.AddFunc(backup.Schedule, func() { RunBackup(client, backup, logger, config) })
+	var cancelChannel = make(chan bool)
+	c.AddFunc(backup.Schedule, func() { RunBackup(client, backup, logger, config, cancelChannel) })
 	c.Start()
 	return c
 }
