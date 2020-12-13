@@ -1,31 +1,29 @@
 package agent
 
 import (
-	"fmt"
+	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
-	"github.com/backupshq/agent/log"
 )
 
 type AgentWorker struct {
-	number    int
-	logger    *log.Logger
-	apiClient *api.ApiClient
+	number int
+	agent  *Agent
 }
 
-func CreateWorker(n int, l *log.Logger, c *api.ApiClient) *AgentWorker {
+func CreateWorker(number int, agent *Agent) *AgentWorker {
 	return &AgentWorker{
-		number:    n,
-		logger:    l,
-		apiClient: c,
+		number: number,
+		agent:  agent,
 	}
 }
 
-func (w *AgentWorker) work(c <-chan int) {
+func (w *AgentWorker) work(c <-chan api.Job) {
 	for i := range c {
 		w.handleMessage(i)
 	}
 }
 
-func (w *AgentWorker) handleMessage(i int) {
-	w.logger.Debug(fmt.Sprintf("%d Handling message %d", w.number, i))
+func (w *AgentWorker) handleMessage(job api.Job) {
+	w.agent.apiClient.StartExistingJob(job)
+	actions.RunJob(w.agent.apiClient, w.agent.backups[job.BackupID], job, w.agent.logger, w.agent.config)
 }

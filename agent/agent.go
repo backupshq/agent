@@ -21,7 +21,7 @@ type Agent struct {
 	token       api.AgentToken
 	backups     map[string]api.Backup
 	crons       map[string]*cron.Cron
-	workerQueue chan int
+	workerQueue chan api.Job
 }
 
 func Create(c *config.Config) *Agent {
@@ -31,7 +31,7 @@ func Create(c *config.Config) *Agent {
 		config:      c,
 		backups:     make(map[string]api.Backup),
 		crons:       make(map[string]*cron.Cron),
-		workerQueue: make(chan int, 10),
+		workerQueue: make(chan api.Job, 10),
 	}
 }
 
@@ -40,8 +40,8 @@ func (a *Agent) ping() {
 	pingResponse := a.apiClient.Ping(a.token)
 
 	if len(pingResponse.AssignedPendingJobs) > 0 {
-		for i, _ := range pingResponse.AssignedPendingJobs {
-			a.workerQueue <- i
+		for _, job := range pingResponse.AssignedPendingJobs {
+			a.workerQueue <- job
 		}
 	}
 
@@ -104,8 +104,7 @@ Starting BackupsHQ agent
 	for i := 1; i < 5; i++ {
 		worker := CreateWorker(
 			i,
-			a.logger,
-			a.apiClient,
+			a,
 		)
 
 		go worker.work(a.workerQueue)
