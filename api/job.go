@@ -51,6 +51,33 @@ func (c *ApiClient) StartJob(backupId string) Job {
 	return startedJob
 }
 
+func (c *ApiClient) StartExistingJob(job Job) Job {
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/start", c.server, job.ID), nil)
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+	c.AddAuthHeader(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading body. ", err)
+	}
+
+	if resp.StatusCode != 200 {
+		log.Fatal(fmt.Sprintf("Unable to start job: HTTP "+resp.Status+" %v", string(body)))
+	}
+
+	var startedJob Job
+	err = json.Unmarshal(body, &startedJob)
+	return startedJob
+}
+
 func (c *ApiClient) FinishJob(job Job, status string) {
 	var requestBody = []byte(fmt.Sprintf(`{"status":"%s"}`, status))
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/finish", c.server, job.ID), bytes.NewBuffer(requestBody))
