@@ -21,6 +21,7 @@ type Backup struct {
 	ID              string
 	Name            string
 	Description     string
+	Status          string
 	Managed         bool
 	Schedule        string
 	UpdatedAt       string           `json:"updated_at"`
