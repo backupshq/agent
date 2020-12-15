@@ -38,8 +38,8 @@ func Create(c *config.Config) *Agent {
 }
 
 func (a *Agent) ping() {
-	a.logger.Debug("Checking for changes to backups...")
 	pingResponse := a.apiClient.Ping(a.token)
+	a.logger.Debug("Ping")
 
 	if len(pingResponse.AssignedJobs) > 0 {
 		for _, job := range pingResponse.AssignedJobs {

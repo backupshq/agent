@@ -23,6 +23,7 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, con
 
 // Run a job that has already been marked as started.
 func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.Logger, config *config.Config, cancelChannel <-chan bool) {
+	logger.Info(fmt.Sprintf("Starting job: %s #%d", job.BackupName, job.JobNumber))
 	status := "succeeded"
 
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "backupshq-")
@@ -40,7 +41,7 @@ func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.L
 		env, err := evaluateExpressions(client, definition, logger, config)
 		var out string
 		if err == nil {
-			logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, scriptPath))
+			logger.Debug(fmt.Sprintf(`Running command: "%s"`, scriptPath))
 			out, err = utils.ExecuteCommand(scriptPath, env, cancelChannel)
 		}
 
@@ -63,8 +64,8 @@ func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.L
 		}
 	}
 
-	logger.Debug("Publishing job result to the API.")
 	client.FinishJob(job, status)
+	logger.Info(fmt.Sprintf("Finished job: %s #%d", job.BackupName, job.JobNumber))
 }
 
 func evaluateExpressions(client *api.ApiClient, definition api.StepDefinition, logger *log.Logger, config *config.Config) ([]string, error) {
