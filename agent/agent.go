@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
 	"github.com/backupshq/agent/config"
 	"github.com/backupshq/agent/log"
@@ -56,34 +55,24 @@ func (a *Agent) ping() {
 	}
 
 	if pingResponse.UpdatedBackupCount > 0 {
-		a.logger.Debug("Changes to backups found... Syncing...")
+		a.logger.Debug(fmt.Sprintf("Ping response returned %d updated backups", pingResponse.UpdatedBackupCount))
 		a.update()
-		return
 	}
-	a.logger.Debug("No changes found")
 }
 
 func (a *Agent) update() {
 	backups := a.apiClient.ListBackups(a.principal.ID)
-	a.logger.Debug(fmt.Sprintf("Scheduled backups pulled from the API: %d", len(backups)))
+	a.logger.Debug(fmt.Sprintf("Fetched %d managed backups assigned to this agent", len(backups)))
 
-	updatedCount := 0
 	for id := range backups {
 		fullBackup := a.apiClient.GetBackup(id)
 		if a.backups[id].UpdatedAt != fullBackup.UpdatedAt {
+			a.logger.Debug(fmt.Sprintf("Updated definition of %s", fullBackup.Name))
 			a.backups[id] = fullBackup
 
-			if cron, ok := a.crons[id]; ok { // checks if there's an existing cron job for this backup
-				cron.Stop()
-			}
-			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id], a.logger, a.config)
-
-			updatedCount++
-			a.logger.Debug("Updated backup: " + fullBackup.Name)
+			a.configureSchedule(fullBackup)
 		}
 	}
-
-	a.logger.Info(fmt.Sprintf("Updated %d backup definitions", updatedCount))
 }
 
 func (a *Agent) Start() {
