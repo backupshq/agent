@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // Create a new job, mark it as started, and run it.
@@ -48,6 +49,7 @@ func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.L
 		if err != nil {
 			if err.Error() == "cancelled" {
 				logger.Info(fmt.Sprintf("Cancelling job: %s #%d", job.BackupName, job.JobNumber))
+				client.UpdateJob(job, time.Now())
 				return
 			}
 

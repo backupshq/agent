@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Job struct {
@@ -95,6 +96,28 @@ func (c *ApiClient) FinishJob(job Job, status string) {
 
 	if resp.StatusCode != 200 {
 		log.Fatal("Failed to finish job: " + resp.Status)
+	}
+
+	return
+}
+
+// TODO: Replace all PATCH job endpoints with this
+func (c *ApiClient) UpdateJob(job Job, finishedAt time.Time) {
+	var requestBody = []byte(fmt.Sprintf(`{"finished_at":"%s"}`, finishedAt.UTC().Format(time.RFC3339)))
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/jobs/%s", c.server, job.ID), bytes.NewBuffer(requestBody))
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+	c.AddAuthHeader(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Fatal("Failed to update job: " + resp.Status)
 	}
 
 	return
