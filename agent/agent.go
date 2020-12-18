@@ -67,7 +67,7 @@ func (a *Agent) update() {
 	for id := range backups {
 		fullBackup := a.apiClient.GetBackup(id)
 		if a.backups[id].UpdatedAt != fullBackup.UpdatedAt {
-			a.logger.Debug(fmt.Sprintf("Updated definition of %s", fullBackup.Name))
+			a.logger.Debug(fmt.Sprintf(`Updated definition of "%s"`, fullBackup.Name))
 			a.backups[id] = fullBackup
 
 			a.configureSchedule(fullBackup)
@@ -84,9 +84,9 @@ Starting BackupsHQ agent
 	a.apiClient.Authenticate()
 	tokenInfo := a.apiClient.GetCurrentToken()
 	a.principal = a.apiClient.GetPrincipal(tokenInfo.PrincipalId)
-	a.logger.Info(fmt.Sprintf(`Authenticated as principal %s "%s"`, a.principal.ID, a.principal.Name))
+	a.logger.Info(fmt.Sprintf(`Authenticated as "%s", principal ID %s`, a.principal.Name, a.principal.ID))
 	a.account = a.apiClient.GetAccount(tokenInfo.AccountId)
-	a.logger.Info(fmt.Sprintf(`This agent belongs to account %s "%s"`, a.account.ID, a.account.Name))
+	a.logger.Info(fmt.Sprintf(`This agent belongs to "%s", account ID %s`, a.account.Name, a.account.ID))
 	a.token = a.apiClient.Register()
 
 	a.update()
