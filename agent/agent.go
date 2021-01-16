@@ -5,68 +5,74 @@ import (
 	"sync"
 	"time"
 
-	"github.com/backupshq/agent/actions"
 	"github.com/backupshq/agent/api"
 	"github.com/backupshq/agent/config"
 	"github.com/backupshq/agent/log"
+	"github.com/backupshq/agent/utils"
 	"github.com/robfig/cron/v3"
 )
 
 type Agent struct {
-	logger    *log.Logger
-	apiClient *api.ApiClient
-	config    *config.Config
-	principal api.Principal
-	account   api.Account
-	token     api.AgentToken
-	backups   map[string]api.Backup
-	crons     map[string]*cron.Cron
-	waitGroup sync.WaitGroup
+	logger            *log.Logger
+	apiClient         *api.ApiClient
+	config            *config.Config
+	principal         api.Principal
+	account           api.Account
+	token             api.AgentToken
+	backups           map[string]api.Backup
+	crons             map[string]*cron.Cron
+	workerQueue       chan api.Job
+	jobCancelChannels *utils.SignalMap
 }
 
 func Create(c *config.Config) *Agent {
 	return &Agent{
-		logger:    log.CreateStdoutLogger(c.LogLevel.Level),
-		apiClient: api.NewClient(c),
-		config:    c,
-		backups:   make(map[string]api.Backup),
-		crons:     make(map[string]*cron.Cron),
+		logger:            log.CreateStdoutLogger(c.LogLevel.Level),
+		apiClient:         api.NewClient(c),
+		config:            c,
+		backups:           make(map[string]api.Backup),
+		crons:             make(map[string]*cron.Cron),
+		workerQueue:       make(chan api.Job, 10),
+		jobCancelChannels: &utils.SignalMap{},
 	}
 }
 
 func (a *Agent) ping() {
-	a.logger.Debug("Checking for changes to backups...")
-	shouldFetchBackups := a.apiClient.Ping(a.token)
+	pingResponse := a.apiClient.Ping(a.token)
+	a.logger.Debug("Ping")
 
-	if shouldFetchBackups {
-		a.logger.Debug("Changes to backups found... Syncing...")
-		a.update()
-		return
+	if len(pingResponse.AssignedJobs) > 0 {
+		for _, job := range pingResponse.AssignedJobs {
+			if job.Status == "pending" {
+				a.workerQueue <- job
+			}
+			if job.Status == "cancelled" {
+				if cancel, ok := a.jobCancelChannels.Load(job.ID); ok {
+					cancel <- true
+				}
+			}
+		}
 	}
-	a.logger.Debug("No changes found")
+
+	if pingResponse.UpdatedBackupCount > 0 {
+		a.logger.Debug(fmt.Sprintf("Ping response returned %d updated backups", pingResponse.UpdatedBackupCount))
+		a.update()
+	}
 }
 
 func (a *Agent) update() {
 	backups := a.apiClient.ListBackups(a.principal.ID)
-	a.logger.Debug(fmt.Sprintf("Scheduled backups pulled from the API: %d", len(backups)))
+	a.logger.Debug(fmt.Sprintf("Fetched %d managed backups assigned to this agent", len(backups)))
 
-	updatedCount := 0
 	for id := range backups {
 		fullBackup := a.apiClient.GetBackup(id)
 		if a.backups[id].UpdatedAt != fullBackup.UpdatedAt {
+			a.logger.Debug(fmt.Sprintf(`Updated definition of "%s"`, fullBackup.Name))
 			a.backups[id] = fullBackup
 
-			if cron, ok := a.crons[id]; ok { // checks if there's an existing cron job for this backup
-				cron.Stop()
-			}
-			a.crons[id] = actions.Schedule(a.apiClient, a.backups[id], a.logger, a.config)
-
-			updatedCount++
-			a.logger.Debug("Updated backup: " + fullBackup.Name)
+			a.configureSchedule(fullBackup)
 		}
 	}
-
-	a.logger.Info(fmt.Sprintf("Updated %d backup definitions", updatedCount))
 }
 
 func (a *Agent) Start() {
@@ -78,14 +84,15 @@ Starting BackupsHQ agent
 	a.apiClient.Authenticate()
 	tokenInfo := a.apiClient.GetCurrentToken()
 	a.principal = a.apiClient.GetPrincipal(tokenInfo.PrincipalId)
-	a.logger.Info(fmt.Sprintf(`Authenticated as principal %s "%s"`, a.principal.ID, a.principal.Name))
+	a.logger.Info(fmt.Sprintf(`Authenticated as "%s", principal ID %s`, a.principal.Name, a.principal.ID))
 	a.account = a.apiClient.GetAccount(tokenInfo.AccountId)
-	a.logger.Info(fmt.Sprintf(`This agent belongs to account %s "%s"`, a.account.ID, a.account.Name))
+	a.logger.Info(fmt.Sprintf(`This agent belongs to "%s", account ID %s`, a.account.Name, a.account.ID))
 	a.token = a.apiClient.Register()
 
 	a.update()
 
-	a.waitGroup.Add(1)
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		for {
 			a.ping()
@@ -93,5 +100,14 @@ Starting BackupsHQ agent
 		}
 	}()
 
-	a.waitGroup.Wait()
+	for i := 1; i < 5; i++ {
+		worker := CreateWorker(
+			i,
+			a,
+		)
+
+		go worker.work(a.workerQueue)
+	}
+
+	wg.Wait()
 }

@@ -46,7 +46,12 @@ func (c *ApiClient) Register() AgentToken {
 	return token
 }
 
-func (c *ApiClient) Ping(token AgentToken) bool {
+type PingResponse struct {
+	UpdatedBackupCount int   `json:"updated_backup_count"`
+	AssignedJobs       []Job `json:"assigned_jobs"`
+}
+
+func (c *ApiClient) Ping(token AgentToken) PingResponse {
 	req, err := c.get(fmt.Sprintf("/agents/ping/%s", token.Token))
 	if err != nil {
 		log.Fatal("Error creating request. ", err)
@@ -62,5 +67,13 @@ func (c *ApiClient) Ping(token AgentToken) bool {
 		log.Fatal("Unable to ping API: HTTP " + resp.Status)
 	}
 
-	return resp.StatusCode == 200
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading body. ", err)
+	}
+
+	var response PingResponse
+	err = json.Unmarshal(body, &response)
+
+	return response
 }

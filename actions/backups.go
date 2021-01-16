@@ -12,11 +12,19 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 )
 
-func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, config *config.Config) {
+// Create a new job, mark it as started, and run it.
+func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, config *config.Config, cancelChannel <-chan bool) {
 	job := client.StartJob(backup.ID)
 	logger.Info(fmt.Sprintf("Starting a new job with id %q.", job.ID))
+	RunJob(client, backup, job, logger, config, cancelChannel)
+}
+
+// Run a job that has already been marked as started.
+func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.Logger, config *config.Config, cancelChannel <-chan bool) {
+	logger.Info(fmt.Sprintf("Starting job: %s #%d", job.BackupName, job.JobNumber))
 	status := "succeeded"
 
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "backupshq-")
@@ -34,11 +42,17 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, con
 		env, err := evaluateExpressions(client, definition, logger, config)
 		var out string
 		if err == nil {
-			logger.Debug(fmt.Sprintf(`Running backup command: "%s"`, scriptPath))
-			out, err = utils.ExecuteCommand(scriptPath, env)
+			logger.Debug(fmt.Sprintf(`Running command: "%s"`, scriptPath))
+			out, err = utils.ExecuteCommand(scriptPath, env, cancelChannel)
 		}
 
 		if err != nil {
+			if err.Error() == "cancelled" {
+				logger.Info(fmt.Sprintf("Cancelling job: %s #%d", job.BackupName, job.JobNumber))
+				client.UpdateJob(job, time.Now())
+				return
+			}
+
 			// In the future we can use this block to determine status code, but for now just send the error to the API
 			logger.Warn(err.Error())
 			out = err.Error()
@@ -52,8 +66,8 @@ func RunBackup(client *api.ApiClient, backup api.Backup, logger *log.Logger, con
 		}
 	}
 
-	logger.Debug("Publishing job result to the API.")
 	client.FinishJob(job, status)
+	logger.Info(fmt.Sprintf("Finished job: %s #%d", job.BackupName, job.JobNumber))
 }
 
 func evaluateExpressions(client *api.ApiClient, definition api.StepDefinition, logger *log.Logger, config *config.Config) ([]string, error) {

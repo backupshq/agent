@@ -8,10 +8,15 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Job struct {
-	ID string
+	ID         string
+	BackupID   string `json:"backup_id"`
+	BackupName string `json:"backup_name"`
+	JobNumber  int    `json:"job_number"`
+	Status     string
 }
 
 type JobStep struct {
@@ -48,6 +53,33 @@ func (c *ApiClient) StartJob(backupId string) Job {
 	return startedJob
 }
 
+func (c *ApiClient) StartExistingJob(job Job) Job {
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/start", c.server, job.ID), nil)
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+	c.AddAuthHeader(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading body. ", err)
+	}
+
+	if resp.StatusCode != 200 {
+		log.Fatal(fmt.Sprintf("Unable to start job: HTTP "+resp.Status+" %v", string(body)))
+	}
+
+	var startedJob Job
+	err = json.Unmarshal(body, &startedJob)
+	return startedJob
+}
+
 func (c *ApiClient) FinishJob(job Job, status string) {
 	var requestBody = []byte(fmt.Sprintf(`{"status":"%s"}`, status))
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/finish", c.server, job.ID), bytes.NewBuffer(requestBody))
@@ -64,6 +96,28 @@ func (c *ApiClient) FinishJob(job Job, status string) {
 
 	if resp.StatusCode != 200 {
 		log.Fatal("Failed to finish job: " + resp.Status)
+	}
+
+	return
+}
+
+// TODO: Replace all PATCH job endpoints with this
+func (c *ApiClient) UpdateJob(job Job, finishedAt time.Time) {
+	var requestBody = []byte(fmt.Sprintf(`{"finished_at":"%s"}`, finishedAt.UTC().Format(time.RFC3339)))
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/jobs/%s", c.server, job.ID), bytes.NewBuffer(requestBody))
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+	c.AddAuthHeader(req)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Fatal("Failed to update job: " + resp.Status)
 	}
 
 	return
