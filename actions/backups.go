@@ -59,7 +59,7 @@ func RunJob(client *api.ApiClient, backup api.Backup, job api.Job, logger *log.L
 			status = "failed"
 		}
 		client.SendLogs(step, out)
-		client.FinishStep(step.ID, status)
+		client.FinishStep(step.ID, status, time.Now())
 		if status == "failed" {
 			logger.Warn(fmt.Sprintf("Job step %d failed", step.SortOrder))
 			break
