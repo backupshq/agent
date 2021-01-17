@@ -166,9 +166,9 @@ func (c *ApiClient) SendLogs(step JobStep, logStr string) {
 	}
 }
 
-func (c *ApiClient) FinishStep(stepId string, status string) {
-	var requestBody = []byte(fmt.Sprintf(`{"status": "%s"}`, status))
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/job-steps/%s/finish", c.server, stepId), bytes.NewBuffer(requestBody))
+func (c *ApiClient) FinishStep(stepId string, status string, finishedAt time.Time) {
+	var requestBody = []byte(fmt.Sprintf(`{"status": "%s", "finished_at": "%s"}`, status, finishedAt.UTC().Format("2006-01-02T03:04:05.000000Z")))
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/job-steps/%s", c.server, stepId), bytes.NewBuffer(requestBody))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
